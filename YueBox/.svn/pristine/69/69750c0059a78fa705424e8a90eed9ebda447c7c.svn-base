@@ -1,0 +1,244 @@
+package com.ebupt.yuebox.ui;
+
+
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.application.MyApplication;
+
+
+
+
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+ 
+
+
+
+
+
+import android.annotation.TargetApi;
+//import com.example.wenandroid.R;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.StrictMode;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.Window;
+import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.app.backup.SharedPreferencesBackupHelper;
+
+/**
+ * 
+ * @ClassName: UserLogin
+ * @Description: 登录页面，只首次登陆出现
+ * @author haoxueqi
+ * @date 2014-3-11
+ * 
+ */
+
+public class UserLogin extends Activity  {
+private EditText login_username;
+private EditText login_password;
+private Button user_login_button;
+
+private SharedPreferences sp;
+private String userNameValue;
+private long mExitTime;
+
+	@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    requestWindowFeature(Window.FEATURE_NO_TITLE);
+    setContentView(R.layout.user_login);
+   
+    MyApplication.getInstance().addActivity(this); //每个activity都存入容器，以便退出时使用	  
+    
+    sp = this.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+  //--判断是否首次登陆----
+    boolean isFirstRun = sp.getBoolean("isFirstRun", true); 
+    Editor editor = sp.edit();
+    //--首次登陆
+    if (isFirstRun) 
+    { 
+    	editor.putBoolean("isFirstRun", false); 
+        editor.commit(); 
+        initWidget();
+    
+    } else 
+    //--非首次登陆，记住密码自动登陆
+    { 
+    	initWidget();
+    	login_username.setText(sp.getString("USER_NAME", ""));  
+        login_password.setText(sp.getString("PASSWORD", "")); 
+    	CharSequence strResult="登陆成功！";
+        Toast.makeText(UserLogin.this, strResult, Toast.LENGTH_SHORT).show();
+        Intent intent=new Intent(this,MainActivity.class);
+        startActivity(intent);
+    } 
+
+
+    
+ 
+}
+    private void initWidget()
+    {
+        login_username=(EditText)findViewById(R.id.login_username);
+        login_password=(EditText)findViewById(R.id.login_password);
+        user_login_button=(Button)findViewById(R.id.user_login_button);                
+        login_username.setOnFocusChangeListener(new OnFocusChangeListener()
+        {
+ 
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                // TODO Auto-generated method stub
+                if(!hasFocus){
+                    String username=login_username.getText().toString().trim();
+                    if(username.length()<6){
+                        Toast.makeText(UserLogin.this, "用户名不能小于6个字符", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+             
+        });
+        login_password.setOnFocusChangeListener(new OnFocusChangeListener()
+        {
+ 
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                // TODO Auto-generated method stub
+                if(!hasFocus){
+                    String password=login_password.getText().toString().trim();
+                    if(password.length()<6){
+                        Toast.makeText(UserLogin.this, "密码不能小于6个字符", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+             
+        });
+        
+    user_login_button.setOnClickListener(new View.OnClickListener() {
+		
+		@Override  
+		public void onClick(View v) {
+	        // TODO Auto-generated method stub
+			userNameValue = login_username.getText().toString();  
+	            if(checkEdit())
+	            {
+	                login();
+	            }
+	        }    
+	});
+    }
+
+    
+     
+    private boolean checkEdit(){
+        if(login_username.getText().toString().trim().equals("")){
+            Toast.makeText(UserLogin.this, "用户名不能为空", Toast.LENGTH_SHORT).show();
+        }else if(login_password.getText().toString().trim().equals("")){
+            Toast.makeText(UserLogin.this, "密码不能为空", Toast.LENGTH_SHORT).show();
+        }else{
+            return true;
+        }
+        return false;
+    }
+     
+    private void login(){
+    	CharSequence strResult="登陆成功！";
+        Toast.makeText(UserLogin.this, strResult, Toast.LENGTH_SHORT).show();
+        //--记住用户名  ------
+
+        sp.edit().putString("USER_NAME", userNameValue).commit();  
+        Intent intent=new Intent(this,UserResetpsw.class);
+        startActivity(intent);	
+    	
+      	
+//        String httpUrl="http://192.168.1.102:8080/web-test/login.jsp";
+//        HttpPost httpRequest=new HttpPost(httpUrl);
+//        List<NameValuePair> params=new ArrayList<NameValuePair>();
+//        params.add(new BasicNameValuePair("username",login_username.getText().toString().trim()));
+//        params.add(new BasicNameValuePair("password",login_password.getText().toString().trim()));
+//        HttpEntity httpentity = null;
+//        try {
+//            httpentity = new UrlEncodedFormEntity(params,"utf8");
+//        } catch (UnsupportedEncodingException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        httpRequest.setEntity(httpentity);
+//        HttpClient httpclient=new DefaultHttpClient();
+//        HttpResponse httpResponse = null;
+//        try {
+//            httpResponse = httpclient.execute(httpRequest);
+//        } catch (ClientProtocolException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+
+			//        if(httpResponse.getStatusLine().getStatusCode()==200)
+//        {
+//            String strResult = null;
+//            try {
+//                strResult = EntityUtils.toString(httpResponse.getEntity());
+//            } catch (ParseException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+//
+//            Toast.makeText(UserLogin.this, strResult, Toast.LENGTH_SHORT).show();
+//            Intent intent=new Intent(this,UserResetpsw.class);
+//            startActivity(intent);
+//        }
+//        else
+//        {
+//            Toast.makeText(UserLogin.this, "登录失败！", Toast.LENGTH_SHORT).show();
+//        }
+         
+    }
+    
+	//--点击两次back键退出程序---------------
+    public boolean onKeyDown(int keyCode,KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if ((System.currentTimeMillis() - mExitTime) > 2000) {
+                        Object mHelperUtils;
+                        Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                        mExitTime = System.currentTimeMillis();
+
+                } else {
+                	MyApplication.getInstance().exit();
+                }
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }	
+}

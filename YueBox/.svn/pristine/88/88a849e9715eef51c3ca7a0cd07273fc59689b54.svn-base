@@ -1,0 +1,5 @@
+package com.ebupt.yuebox.util;
+
+public class JsonParser {
+
+}

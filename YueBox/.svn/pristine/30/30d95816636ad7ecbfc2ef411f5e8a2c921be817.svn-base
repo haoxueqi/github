@@ -1,0 +1,26 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="30dp"
+    android:id="@+id/layout_header"
+    android:background="@color/background_yellow" >
+
+    <TextView
+        android:id="@+id/tv_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="50dp"
+        android:text="未完成工单"
+        android:textColor="@color/text_lightgray"
+        android:textSize="14sp" />
+
+    <ImageView
+        android:id="@+id/image_header"
+        android:layout_width="20dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="18dp"
+        android:src="@drawable/tag_down" />
+
+</RelativeLayout>

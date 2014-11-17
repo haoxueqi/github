@@ -1,0 +1,589 @@
+package com.ebupt.yuebox.view;
+
+import java.io.IOException;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
+import android.hardware.Camera.Parameters;
+import android.hardware.Camera.PictureCallback;
+import android.hardware.Camera.PreviewCallback;
+import android.hardware.SensorManager;
+import android.os.Build;
+import android.util.AttributeSet;
+import android.view.OrientationEventListener;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+
+/**
+ * 自定义相机的View
+ * 
+ * @author wangjingtao
+ * 
+ */
+public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
+
+	private Camera mCamera = null;
+	public CameraConfigurationManager mConfigManager;
+	private boolean isPreviewing;// 是否已经开始预览
+	private SurfaceHolder mSurfaceHolder = null;
+	private OnSavePicListener mOnSavePicListener;
+	private int mFlashType = 0;// 0-关闭闪光灯; 1-自动闪光灯; 2-闪光灯常开; 3-电筒
+	private int mPreScreenDegree = -1;// 上次的屏幕旋转角度
+	private boolean isSensorEnabled = false;
+	private boolean isPhotoTaken = false;
+	private OrientationEventListener mOrientationListener;// 方向传感器
+	private int rotateDegree = 90;
+	private PreviewCallback mPreviewCallback;
+	private boolean mIsCameraMode = true;// 当前是否在拍照模式，区别拍照，涂抹
+	private Context mContext;
+	private int[] rgb;// 储存保存后图像的RGB信息
+	private byte[] mPictureData;// 摄像头原始数据
+	private Bitmap mPictureBitmap;// 拍照生成的bitmap
+
+	public CameraView(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
+		mContext = context;
+		init();
+	}
+
+	public CameraView(Context context, AttributeSet attrs) {
+		super(context, attrs);
+		mContext = context;
+		init();
+	}
+
+	public CameraView(Context context) {
+		super(context);
+		mContext = context;
+		init();
+	}
+
+	@SuppressWarnings("deprecation")
+	private void init() {
+		mConfigManager = new CameraConfigurationManager(mContext);
+		mSurfaceHolder = this.getHolder();
+		mSurfaceHolder.addCallback(this);
+		// 不能去掉下面这行, 否则在2.x机器上，可能无法预览
+		mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		initSensor();
+	}
+
+	private void initSensor() {
+		mOrientationListener = new OrientationEventListener(this.getContext(), SensorManager.SENSOR_DELAY_NORMAL) {
+			@Override
+			public void onOrientationChanged(int orientation) {
+				setCameraOrientation(false);
+			}
+		};
+	}
+
+	public void onResume() {
+		if (isSensorEnabled)
+			mOrientationListener.enable();
+
+		if (!isPhotoTaken && mIsCameraMode) {
+			startPreview();
+			setCameraOrientation(true);
+		}
+	}
+
+	public void onPause() {
+		mOrientationListener.disable();
+		stopPreview();
+	}
+
+	@Override
+	public synchronized void surfaceCreated(SurfaceHolder holder) {
+
+		try {
+			mCamera = Camera.open();// 开启摄像头（2.3版本后支持多摄像头,需传入参数）
+			init();
+			setCameraOrientation(true);
+			mCamera.setPreviewDisplay(mSurfaceHolder);
+		} catch (IOException ex) {
+			if (null != mCamera) {
+				mCamera.release();
+				mCamera = null;
+			}
+		}
+	}
+
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+		if (!mIsCameraMode)
+			return;
+
+		if (holder.getSurface() == null) {
+			return;
+		}
+		mSurfaceHolder = holder;
+
+		if (mCamera != null) {
+			try {
+				Parameters parameters = mCamera.getParameters(); // 获取各项参数
+				parameters.setPreviewSize(width, height); // 设置预览大小
+				mCamera.setParameters(parameters);
+
+			} catch (RuntimeException e) {
+				// e.printStackTrace();
+			} finally {
+				initCamera();
+			}
+		}
+	}
+
+	@Override
+	public synchronized void surfaceDestroyed(SurfaceHolder holder) {
+		if (null != mCamera) {
+			mCamera.setPreviewCallback(null); // ！！这个必须在前，不然退出出错
+			mCamera.stopPreview();
+			mCamera.release();
+			mCamera = null;
+		}
+		mSurfaceHolder = null;
+	}
+
+	// surfaceChanged中调用
+	private void initCamera() {
+		if (mCamera == null)
+			return;
+		try {
+			// Camera Service settings
+			Camera.Parameters parameters = mCamera.getParameters();
+			// 设置闪光灯模式
+			setFlashType(mFlashType);
+			// 设定相片格式为JPEG，默认为NV21
+			parameters.setPictureFormat(ImageFormat.JPEG);
+			// 设置预览图片样式，默认为NV21
+			// parameters.setPreviewFormat(ImageFormat.NV21);
+
+			// 横竖屏镜头自动调整
+			setCameraOrientation(true);
+			mCamera.setParameters(parameters); // 将Camera.Parameters设定予Camera
+			setBestPreviewSize();
+			setDefaultPreviewCallback();
+			// 设定配置参数并开启预览
+
+			if (mIsCameraMode) {
+				startPreview(); // 打开预览画面
+			}
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void setBestPreviewSize() {
+		// 设置最佳预览图片大小
+		if (mCamera != null) {
+			mConfigManager.initFromCameraParameters(mCamera);
+			mConfigManager.setDesiredCameraParameters(mCamera);
+		}
+
+	}
+
+	/**
+	 * 设置闪光灯类型
+	 * 
+	 * @param flash
+	 *            0-关闭闪光灯; 1-自动闪光灯; 2-闪光灯常开; 3-电筒
+	 */
+	public synchronized void setFlashType(int flash) {
+		mFlashType = flash;
+		if (mCamera == null) {
+			mCamera = Camera.open();
+		}
+
+		Camera.Parameters parameters = mCamera.getParameters();
+		if (mFlashType == 0)
+			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+		else if (mFlashType == 1)
+			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+		else if (mFlashType == 2)
+			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+		else if (mFlashType == 3)
+			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+
+		mCamera.setParameters(parameters); // 将Camera.Parameters设定予Camera
+
+	}
+
+	public void setPreviewCallback(PreviewCallback cb) {
+		this.mPreviewCallback = cb;
+	}
+
+	public void setDefaultPreviewCallback() {
+		if (mCamera != null) {
+			mCamera.setPreviewCallback(new PreviewCallback() {
+				@Override
+				public void onPreviewFrame(byte[] data, Camera camera) {
+					if (mPreviewCallback != null) {
+						mPreviewCallback.onPreviewFrame(data, camera);
+					} else {
+						mPictureData = data;
+					}
+				}
+			});
+		}
+	}
+
+	public void setOneShotPreviewCallback(PreviewCallback cb) {
+		mCamera.setOneShotPreviewCallback(cb);
+	}
+
+	public void stopPreview() {
+		if (mCamera != null && isPreviewing) {
+			mCamera.stopPreview();
+			isPreviewing = false;
+		}
+	}
+
+	public void startPreview() {
+		if (mCamera != null) {
+			if (!isPreviewing) {
+				isPreviewing = true;
+				mCamera.startPreview();
+			}
+
+			isPhotoTaken = false;
+		}
+	}
+
+	public boolean isPreviewing() {
+		return isPreviewing;
+	}
+
+	public void autoFocus() {
+		if (mCamera == null || !isPreviewing) {
+			return;
+		}
+
+		try {
+			mCamera.autoFocus(null);
+		} catch (Exception e) {
+
+		}
+	}
+
+	public void autoFocus(AutoFocusCallback cb) {
+		if (mCamera == null || !isPreviewing) {
+			return;
+		}
+
+		try {
+			mCamera.autoFocus(cb);
+		} catch (Exception e) {
+
+		}
+	}
+
+	public void enableSensor() {
+		this.isSensorEnabled = true;
+		mOrientationListener.enable();
+	}
+
+	public void disableSenSor() {
+		this.isSensorEnabled = false;
+
+	}
+
+	/**
+	 * 对摄像头原始数据进行转码
+	 * 
+	 * @param yuv420sp
+	 *            原始图片数据
+	 * @param width
+	 *            图片宽度
+	 * @param height
+	 *            图片高度
+	 * 
+	 * */
+	public void decodeYUV420SP(byte[] yuv420sp, int width, int height, int rgb[], int degree) {
+		int frameSize = width * height;
+		for (int j = 0, yp = 0; j < height; j++) {
+			int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
+
+			for (int i = 0; i < width; i++, yp++) {
+				int y = (0xff & ((int) yuv420sp[yp])) - 16;
+				if (y < 0)
+					y = 0;
+				if ((i & 1) == 0) {
+					v = (0xff & yuv420sp[uvp++]) - 128;
+					u = (0xff & yuv420sp[uvp++]) - 128;
+				}
+
+				int y1192 = 1192 * y;
+				int r = (y1192 + 1634 * v);
+				int g = (y1192 - 833 * v - 400 * u);
+				int b = (y1192 + 2066 * u);
+
+				if (r < 0)
+					r = 0;
+				else if (r > 262143)
+					r = 262143;
+				if (g < 0)
+					g = 0;
+				else if (g > 262143)
+					g = 262143;
+				if (b < 0)
+					b = 0;
+				else if (b > 262143)
+					b = 262143;
+
+				switch (degree) {
+					case 0 :
+						rgb[yp] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00) | ((b >> 10) & 0xff);
+						break;
+					case 90 :
+						rgb[height * i + height - j - 1] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00)
+								| ((b >> 10) & 0xff);
+						break;
+					case 180 :
+						rgb[(height - j) * width - i - 1] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00)
+								| ((b >> 10) & 0xff);
+						break;
+					case 270 :
+						rgb[(width - i - 1) * height + j] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00)
+								| ((b >> 10) & 0xff);
+						break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * 获取拍照生成的Bitmap
+	 * 
+	 * @return
+	 */
+	public Bitmap getPicture() {
+		if (mCamera == null) {
+			return null;
+		}
+		stopPreview();
+		int ws = getCameraParameters().getPreviewSize().width;
+		int hs = getCameraParameters().getPreviewSize().height;
+		rgb = new int[ws * hs];
+		decodeYUV420SP(mPictureData, ws, hs, rgb, 0);
+		mPictureBitmap = Bitmap.createBitmap(rgb, ws, hs, Bitmap.Config.ARGB_8888);
+		return mPictureBitmap;
+	}
+
+	/**
+	 * 保存图片
+	 * 
+	 * @param path
+	 *            保存的图片路径
+	 * @param saveListener
+	 */
+	public void takePicture(final String path, OnSavePicListener saveListener) {
+		mOnSavePicListener = saveListener;
+
+		if (mCamera == null) {
+			if (saveListener != null) {
+				saveListener.onFailed();
+			}
+
+			return;
+		}
+		Camera.PictureCallback jpeg = new PictureCallback() {
+			@Override
+			public void onPictureTaken(byte[] data, Camera camera) {
+				Parameters ps = camera.getParameters();
+				if (ps.getPictureFormat() == ImageFormat.JPEG) {
+					// 存储拍照获得的图片
+					if (save(data, path)) {
+						if (mOnSavePicListener != null) {
+							mOnSavePicListener.onSuccess(CameraView.this);
+						}
+					} else {
+						if (mOnSavePicListener != null) {
+							mOnSavePicListener.onFailed();
+						}
+					}
+					stopPreview();
+					isPhotoTaken = true;
+				} else {
+					if (mOnSavePicListener != null) {
+						mOnSavePicListener.onFailed();
+					}
+				}
+			}
+		};
+
+		mCamera.takePicture(null, null, jpeg);
+	}
+
+	/**
+	 * 设置相机的预览角度,在2.2以上可以直接使用setDisplayOrientation
+	 * 
+	 * @param forceRotate
+	 *            是否强制按照屏幕方向旋转
+	 */
+	public void setCameraOrientation(boolean forceRotate) {
+		if (mCamera == null)
+			return;
+
+		int degree = getScreemRotation(((Activity) getContext()));
+		if (degree == mPreScreenDegree && !forceRotate)
+			return;
+
+		mPreScreenDegree = degree;
+
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {// 2.2的处理流程
+			if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+				rotateDegree = 90;// 镜头角度转90度（默认摄像头是横拍）
+			} else {// 如果是横屏
+				rotateDegree = 0;
+			}
+			mCamera.setDisplayOrientation(rotateDegree);
+
+		} else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {// 2.3及以上的处理方式
+			try {
+				stopPreview();
+				setCameraRotateByScreenRotateion(degree);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (mIsCameraMode)
+					startPreview();
+			}
+
+		} else {// 4.0及以上的处理流程，4.0以上可以不用stopPreview()，直接设置摄像头旋转角度
+			setCameraRotateByScreenRotateion(degree);
+		}
+
+		Camera.Parameters parameters = mCamera.getParameters();
+		if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+			parameters.set("orientation", "portrait"); //
+		} else {// 如果是横屏
+			parameters.set("orientation", "landscape"); //
+		}
+		mCamera.setParameters(parameters);
+	}
+
+	// 2.3及以上的处理方式
+	@SuppressLint("NewApi")
+	private void setCameraRotateByScreenRotateion(int screenDegree) {
+		android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+		Camera.getCameraInfo(0, info);
+		int result;
+		if (info.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT) {// 前置摄像头
+			result = (info.orientation + screenDegree) % 360;
+			result = (360 - result) % 360; // compensate the mirror
+		} else { // 后置摄像头
+			result = (info.orientation - screenDegree + 360) % 360;
+		}
+		rotateDegree = result;
+		mCamera.setDisplayOrientation(result);
+	}
+
+	/**
+	 * 获取当前屏幕旋转角度
+	 * 
+	 * @param activity
+	 * @return 0表示是竖屏; 90表示是左横屏; 180表示是反向竖屏; 270表示是右横屏
+	 */
+	private int getScreemRotation(Activity activity) {
+		int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+		switch (rotation) {
+			case Surface.ROTATION_0 :
+				return 0;
+			case Surface.ROTATION_90 :
+				return 90;
+			case Surface.ROTATION_180 :
+				return 180;
+			case Surface.ROTATION_270 :
+				return 270;
+		}
+		return 0;
+	}
+
+	/**
+	 * 保存图片至存储卡（PNG格式）,不释放bitmap
+	 * 
+	 * @param bm
+	 * @param path
+	 *            文件路径
+	 * @return 保存成功, 则返回true, 否则返回false
+	 */
+	public boolean save(Bitmap bm, String path) {
+//		boolean isSuccess = ImageUtil.saveBitmapAsPng(bm, path, false);
+		return true;
+	}
+
+	/**
+	 * 将byte[]保存为图片
+	 * 
+	 * @param data
+	 * @param path
+	 *            文件路径
+	 * @return 保存成功, 则返回true, 否则返回false
+	 */
+	public boolean save(byte[] data, String path) {
+//		BitmapFactory.Options opt = new BitmapFactory.Options();
+//		opt.inPreferredConfig = Config.RGB_565;
+//		opt.inPurgeable = true;
+//		opt.inInputShareable = true;
+//		Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opt);
+//		Bitmap result = bitmap;
+//		// OOM
+//		if (rotateDegree != 0) {
+//			result = ImageUtil.rotateBitmap(bitmap, rotateDegree, true);
+//		}
+//		boolean isSuccess = ImageUtil.saveBitmap(result, path, true);
+		return true;
+	}
+
+	public interface OnSavePicListener {
+
+		public void onFailed();
+
+		public void onSuccess(CameraView cameraView);
+	}
+
+	@Override
+	protected void onAttachedToWindow() {
+		super.onAttachedToWindow();
+		initCamera();
+	}
+
+	public void setCameraMode(boolean b) {
+		mIsCameraMode = b;
+	}
+
+	public Parameters getCameraParameters() {
+		return mCamera.getParameters();
+	}
+
+	public void clear() {
+		if (mPictureData != null) {
+			mPictureData = null;
+		}
+		if (mPictureBitmap != null) {
+			mPictureBitmap.recycle();
+			mPictureBitmap = null;
+		}
+		if (rgb != null) {
+			rgb = null;
+		}
+	}
+
+	/*
+	 * 获取相机的旋转角度
+	 * 
+	 * @return 相机的旋转角度
+	 */
+
+	public int getCameraOritation() {
+		return rotateDegree;
+	}
+}

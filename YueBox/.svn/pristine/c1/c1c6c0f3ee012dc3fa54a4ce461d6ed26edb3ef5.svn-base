@@ -1,0 +1,86 @@
+package com.ebupt.yuebox.fragment;
+
+import java.util.HashMap;
+import java.util.List;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
+
+import com.ebupt.yuebox.R;
+
+/**
+ * 笔记列表页ListView的自定义Adapter
+ * 
+ * @author xuchang02
+ * 
+ */
+public class RankListAdapter extends BaseAdapter {
+
+	List<HashMap<String, String>> mDataList;
+	Context mContext;
+
+	public RankListAdapter(Context ctx) {
+		mContext = ctx;
+	}
+
+	public RankListAdapter(Context ctx, List<HashMap<String, String>> dataList) {
+		mDataList = dataList;
+		mContext = ctx;
+	}
+
+	public void setDataList(List<HashMap<String, String>> dataList) {
+		mDataList = dataList;
+	}
+
+	@Override
+	public int getCount() {
+		if (mDataList == null)
+			return 0;
+		return mDataList.size();
+	}
+
+	@Override
+	public HashMap<String, String> getItem(int position) {
+		return mDataList.get(position);
+	}
+
+	@Override
+	public long getItemId(int position) {
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		ViewHolder holder;
+		if (convertView == null) {
+			convertView = LayoutInflater.from(mContext).inflate(
+					R.layout.item_rank, null);
+			holder = new ViewHolder();
+			holder.userNameTv = (TextView) convertView
+					.findViewById(R.id.user_name);
+			holder.userScoreTv = (TextView) convertView
+					.findViewById(R.id.user_score);
+			convertView.setTag(holder);
+		} else {
+			holder = (ViewHolder) convertView.getTag();
+		}
+		initView(holder, getItem(position));
+		return convertView;
+	}
+
+	private void initView(ViewHolder holder, HashMap<String, String> item) {
+		String userNameStr = item.get("user_name");
+		String userScoreStr = item.get("user_score");
+		holder.userNameTv.setText(userNameStr);
+		holder.userScoreTv.setText(userScoreStr);
+	}
+
+	private class ViewHolder {
+		TextView userNameTv;
+		TextView userScoreTv;
+	}
+}

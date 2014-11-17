@@ -1,0 +1,56 @@
+package com.ebupt.yuebox.model;
+
+public class NetResult {
+	
+	private Boolean errorCode = null;
+	
+	private String errorMessage = null;
+	
+	private String retContent = null;
+	
+	public NetResult() {
+	}
+	
+	public NetResult(Boolean errorCode, String errorMessage) {
+		init( errorCode,  errorMessage, null);
+	}
+	
+	public NetResult(Boolean errorCode, String errorMessage, String retContent) {
+		init( errorCode,  errorMessage, retContent);
+	}
+	
+	private void init(Boolean errorCode, String errorMessage, String retContent){
+		this.errorCode = errorCode;
+		this.retContent = retContent;
+		this.errorMessage = errorMessage;
+	}
+
+	public Boolean getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(Boolean errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+
+	public String getRetContent() {
+		return retContent;
+	}
+
+	public void setRetContent(String retContent) {
+		this.retContent = retContent;
+	}
+	
+	// For Test
+	public String toString(){
+		return errorCode + "|" + errorMessage +"|" + retContent;
+	}
+}

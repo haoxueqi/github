@@ -1,0 +1,27 @@
+package com.ebupt.yuebox.model;
+
+public class TimeStamp {
+	private long WOTimeStamp;	//工单信息时间戳
+	private long TSTimenStamp;	//用户信息时间戳
+	
+	public TimeStamp()
+	{
+		
+	}
+	public TimeStamp(long wOTimeStamp, long tSTimenStamp) {
+		WOTimeStamp = wOTimeStamp;
+		TSTimenStamp = tSTimenStamp;
+	}
+	public long getWOTimeStamp() {
+		return WOTimeStamp;
+	}
+	public void setWOTimeStamp(long wOTimeStamp) {
+		WOTimeStamp = wOTimeStamp;
+	}
+	public long getTSTimenStamp() {
+		return TSTimenStamp;
+	}
+	public void setTSTimenStamp(long tSTimenStamp) {
+		TSTimenStamp = tSTimenStamp;
+	}
+}

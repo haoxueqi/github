@@ -1,0 +1,14 @@
+package com.ebupt.yuebox.ui;
+
+import com.ebupt.yuebox.model.*;
+
+public final class TestData {
+	public final static SetupTask setupTask1 = new SetupTask(new Long(1), "112", 120000000, 160000000, 260000000, "白塔路营业厅", "白塔路120号", new Integer(102726578), new Integer(25041612), "77777777", "09876543211", null, null, "00", 5, 15, 0, null, "dsadsadssa", 3500);
+	public final static SetupTask setupTask2 = new SetupTask(new Long(0), "111", 100000000, 150000000, 250000000, "盘龙区营业厅", "盘龙区重机厂", new Integer(102717578), new Integer(25037612), "88888888", "12345678901", new Integer(10), null, "00", 5, 10, 0, null, "AGSHSAJAAD", 3000);
+	public final static SetupTask setupTask3 = new SetupTask(new Long(2), "111", 130000000, 170000000, 270000000, "西直门营业厅", "西直门外大街10号", new Integer(102617578), new Integer(25047612), "66666666", "45645678901", new Integer(100), null, "01", 5, 10, 0, null, "AGSHSAJAAD", 3000);
+	public final static SetupTask setupTask4 = new SetupTask(new Long(3), "112", 110000000, 180000000, 290000000, "西单营业厅", "西单110号", new Integer(102826578), new Integer(25031612), "55555555", "78976543211", null, null, "00", 5, 15, 0, null, "dsadsadssa", 3500);
+	public final static SetupTask newSetupTask1= new SetupTask(new Long(4), "112", 140000000, 190000000, 290000000, "西土城营业厅", "西土城11号", new Integer(102776578), new Integer(25033612), "44444444", "55576543211", null, null, "00", 5, 15, 0, null, "dsadsadssa", 3500);
+	public final static SetupTask newSetupTask2 = new SetupTask(new Long(5), "112", 150000000, 200000000, 290000000, "东直门营业厅", "东直门100号", new Integer(102696578), new Integer(25035612), "33333333", "6666543211", null, null, "00", 5, 15, 0, null, "dsadsadssa", 3500);
+	public final static AppSetupUser AppUser1 = new AppSetupUser(new Long(0),"zhangqian","张乾张","1","18612345678","zhangqian1234567890@hotmail.com",
+			                                                    "zhangqian","null","null","null",1,1,1,1,"01",20140318,"1",1);
+}

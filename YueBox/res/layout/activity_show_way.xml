@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+   	<com.baidu.mapapi.map.MapView
+        android:id="@+id/bmapsShowWay"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:clickable="true" >
+    </com.baidu.mapapi.map.MapView>
+
+   	<include
+   	    android:layout_width="wrap_content"
+   	    android:layout_height="wrap_content"
+   	    android:id="@+id/layout_route_detail"
+   	    android:layout_alignParentLeft="true"
+   	    android:layout_alignParentTop="true"
+   	    android:visibility="gone"
+   	    layout="@layout/layout_route_detail" />
+
+   	<include
+   	    android:layout_width="wrap_content"
+   	    android:layout_height="wrap_content"
+ 	    android:id="@+id/layout_search"
+   	    android:layout_alignParentBottom="true"
+   	    android:layout_alignParentTop="true"
+   	    android:layout_centerHorizontal="true"
+   	    layout="@layout/layout_search" />
+    
+</RelativeLayout>

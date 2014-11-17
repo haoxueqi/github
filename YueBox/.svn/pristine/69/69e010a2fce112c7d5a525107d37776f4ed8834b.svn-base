@@ -1,0 +1,55 @@
+package com.ebupt.yuebox.fragment;
+
+import java.util.List;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.ui.MyTaskDetailActivity;
+import com.ebupt.yuebox.ui.ScanActivity;
+
+public class MyFragment extends Fragment implements OnItemClickListener {
+
+	ListView mOrderList;
+	MyOrderListAdapter mAdapter;
+	List<SetupTask> mDataList;
+	View mHeader;
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View contextView = inflater.inflate(R.layout.fragment_my, container,
+				false);
+		mHeader = inflater.inflate(R.layout.header_my_order, null);
+		mOrderList = (ListView) contextView.findViewById(R.id.my_order_list);
+		mOrderList.addHeaderView(mHeader);
+		mAdapter = new MyOrderListAdapter(getActivity());
+		mDataList = DbUtil.getSetupTaskDao().loadAll();
+		mAdapter.setDataList(mDataList);
+		mOrderList.setAdapter(mAdapter);
+		mOrderList.setOnItemClickListener(this);
+		return contextView;
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		Intent intent = new Intent(getActivity(), MyTaskDetailActivity.class);
+		startActivity(intent);
+	}
+
+}

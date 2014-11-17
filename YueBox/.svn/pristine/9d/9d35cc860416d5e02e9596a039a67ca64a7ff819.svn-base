@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:id="@+id/layout_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#BDBDBD" >
+
+    	<TextView
+    	    android:id="@+id/tv_detail_name"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_alignParentTop="true"
+    	    android:layout_centerHorizontal="true"
+    	    android:text="盘龙区营业厅"
+    	    android:textSize="30sp" />
+    </RelativeLayout>
+    
+    <RelativeLayout
+       	android:id="@+id/layout_credits"
+       	android:layout_width="match_parent"
+       	android:layout_height="wrap_content"
+       	android:layout_marginTop="5dp"
+       	android:layout_marginBottom="5dp"
+       	android:layout_below="@+id/layout_name">
+	
+	     <TextView
+	         android:id="@+id/tv_finish_credits"
+	         android:layout_width="wrap_content"
+	         android:layout_height="wrap_content"
+	         android:layout_alignParentLeft="true"
+	         android:layout_alignTop="@+id/layout_status"
+	         android:layout_marginLeft="30dp"
+	         android:text="完成积分：10分"
+	         android:textSize="25sp" />
+	
+		 <FrameLayout
+		     android:id="@+id/layout_status"
+	         android:layout_width="wrap_content"
+	         android:layout_height="wrap_content"
+	         android:layout_alignParentRight="true"
+	         android:layout_centerVertical="true"
+	         android:layout_marginRight="14dp">
+		     <ImageView
+		         android:id="@+id/image_status_green"
+		         android:layout_width="wrap_content"
+		         android:layout_height="wrap_content"		        
+		         android:src="@drawable/tag_button_green" />
+		     <ImageView
+		         android:id="@+id/image_status_red"
+		         android:layout_width="wrap_content"
+		         android:layout_height="wrap_content"
+		         android:visibility="gone"
+		         android:src="@drawable/tag_button_red" />
+		     <TextView
+		         android:id="@+id/tv_status_green"
+		         android:layout_width="wrap_content"
+		         android:layout_height="wrap_content"
+		         android:layout_gravity="center"
+		         android:text="抢"
+		         android:textSize="30sp" />
+		     <TextView
+		         android:id="@+id/tv_status_red"
+		         android:layout_width="wrap_content"
+		         android:layout_height="wrap_content"
+		         android:layout_gravity="center"
+		         android:text="已被抢"
+		         android:textSize="20sp" />
+		 </FrameLayout>     
+
+	     <View
+	         android:id="@+id/view1"
+	         android:layout_width="2dp"
+	         android:layout_height="80dp"
+	         android:background="#BDBDBD"	 
+	         android:layout_centerVertical="true"      
+	         android:layout_toRightOf="@+id/tv_finish_credits" 
+	         android:layout_marginLeft="10dp"/>
+
+	     <TextView
+	         android:id="@+id/tv_grab_credits"
+	         android:layout_width="wrap_content"
+	         android:layout_height="wrap_content"
+	         android:layout_below="@+id/tv_finish_credits"
+	         android:layout_marginTop="15dp"
+	         android:layout_alignLeft="@+id/tv_finish_credits"
+	         android:text="抢单积分：5分"
+	         android:textSize="25sp" />
+	     
+     </RelativeLayout>
+     
+
+    <RelativeLayout
+        android:id="@+id/layout_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/layout_credits"
+        android:background="@drawable/tab_bg"
+        android:clickable="true" >
+
+        <ImageView
+            android:id="@+id/image_right1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_right" />
+
+        <ImageView
+            android:id="@+id/image_car"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_car" />
+
+        <TextView
+            android:id="@+id/tv_detail_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20dp"
+            android:layout_toLeftOf="@+id/image_right1"
+            android:layout_toRightOf="@+id/image_car"
+            android:text="盘龙区120号" />
+
+    </RelativeLayout>
+    
+    <RelativeLayout
+        android:id="@+id/layout_mobile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/layout_address"
+        android:clickable="true"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/tab_bg" >
+
+	    <ImageView
+	        android:id="@+id/image_right2"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentRight="true"
+	        android:layout_centerVertical="true"
+	        android:src="@drawable/tag_right" />
+
+	    <ImageView
+	        android:id="@+id/image_mobile"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:layout_centerVertical="true"
+	        android:src="@drawable/tag_phone" />
+
+	    <TextView
+	        android:id="@+id/tv_detail_mobile"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_centerVertical="true"
+	        android:layout_marginLeft="20dp"
+	        android:layout_toLeftOf="@+id/image_right2"
+	        android:layout_toRightOf="@+id/image_mobile"
+	        android:text="1234567890" />
+
+     </RelativeLayout>
+     
+     <RelativeLayout
+        android:id="@+id/layout_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/layout_mobile"
+        android:clickable="true"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/tab_bg" >
+
+        <ImageView
+            android:id="@+id/image_right3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_right" />
+        
+        <ImageView
+            android:id="@+id/image_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_down" />
+
+        <ImageView
+            android:id="@+id/image_detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_detail" />
+
+        <TextView
+            android:id="@+id/tv_detail_detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20dp"
+            android:layout_toLeftOf="@+id/image_right3"
+            android:layout_toRightOf="@+id/image_detail"
+            android:text="@string/detail" />
+    </RelativeLayout>
+    
+    <ListView
+        android:id="@+id/list_task_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/layout_detail" >
+    </ListView>
+</RelativeLayout>

@@ -1,0 +1,33 @@
+package com.ebupt.yuebox.util;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.ebupt.yuebox.model.*;
+
+public class JsonParser {
+	public static TimeStamp parseTimeSamp(String content)
+	{
+		JSONObject jSon;
+		try {
+			jSon = new JSONObject(content);
+			return new TimeStamp(jSon.getLong("WOTimeStamp"), jSon.getLong("TSTimeStamp"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}	
+	}
+
+	public static String parseLogInfo(String content) {
+		JSONObject jSon;
+		try {
+			jSon = new JSONObject(content);
+			return new String(jSon.getString("info"));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}	
+	}
+}

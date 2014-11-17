@@ -1,0 +1,222 @@
+package com.ebupt.yuebox.service;
+
+import java.util.List;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.Service;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Vibrator;
+import android.util.Log;
+import android.view.Gravity;
+import android.widget.Toast;
+
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.net.NetEngine;
+import com.ebupt.yuebox.util.JsonParser;
+import com.iflytek.cloud.speech.SpeechConstant;
+import com.iflytek.cloud.speech.SpeechError;
+import com.iflytek.cloud.speech.SpeechListener;
+import com.iflytek.cloud.speech.SpeechSynthesizer;
+import com.iflytek.cloud.speech.SpeechUser;
+import com.iflytek.cloud.speech.SynthesizerListener;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+public class MyService extends Service {
+
+	final static long pullTime = 30000;
+	private MyApplication app;
+	private Toast toast;
+	private SharedPreferences timeStampShared;
+	private SpeechSynthesizer mSpeechSynthesizer;
+	private final static String TAG = "MyService";
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+	}
+
+	@Override
+	public void onDestroy() {
+		mSpeechSynthesizer.stopSpeaking();
+		mSpeechSynthesizer.destroy();
+		super.onDestroy();
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		app = (MyApplication) getApplication();
+		handlerPull.post(pull);
+		synthetizeInSilence();
+		toast = Toast.makeText(getApplication(), "新的工单！", toast.LENGTH_SHORT);
+		toast.setGravity(Gravity.CENTER, 0, 0);
+		timeStampShared = getSharedPreferences("time_stamp", 0);
+		return START_NOT_STICKY;
+	}
+
+	private void synthetizeInSilence() {
+		SpeechUser.getUser().login(this, null, null,
+				SpeechConstant.APPID + "=531ff386", loginListener);
+		if (null == mSpeechSynthesizer) {
+			// 创建合成对象.
+			mSpeechSynthesizer = SpeechSynthesizer.createSynthesizer(this);
+		}
+		// 设置发音人
+		mSpeechSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoyu");
+		// 设置语速
+		mSpeechSynthesizer.setParameter(SpeechConstant.SPEED, "50");
+		// 设置音量
+		mSpeechSynthesizer.setParameter(SpeechConstant.VOLUME, "100");
+	}
+
+	JsonHttpResponseHandler getOrderListHandler = new JsonHttpResponseHandler() {
+		@Override
+		public void onSuccess(JSONObject result) {
+			try {
+				if (result.getBoolean("success") == true) {// 将获取的工单信息存储数据库，并广播通知UI刷新
+					JSONObject data = new JSONObject(result.getString("data"));
+					timeStampShared
+							.edit()
+							.putLong("WOTimeStamp", data.getLong("WOTimeStamp"))
+							.commit();
+					List<SetupTask> setupTasks = JsonParser.parseSetupTask(data
+							.getString("WorkOrderList"));
+					if(setupTasks.size() == 0)
+						return;
+					Log.v(TAG, setupTasks.size() + "个新数据");
+					DbUtil.addSetupTask(setupTasks);
+					app.uploadData();
+					Intent intent = new Intent("com.ebupt.orderreceiver.yes");
+					sendBroadcast(intent);
+					// 进行语音合成.
+					if (app.isOrderFragmentShown == false) {
+						StringBuilder words = new StringBuilder("发现新的工单,");
+						for (int i = 0; i < setupTasks.size(); i++) {
+							String word = "客户"
+									+ (i + 1)
+									+ "为"
+									+ setupTasks.get(i).getTask_client_name()
+									+ ",需安装"
+									+ setupTasks.get(i).getTask_box_num()
+									+ "台盒子，完成可获得积分"
+									+ setupTasks.get(i)
+											.getTask_finish_credits() + "积分;";
+							words.append(word);
+						}
+						mSpeechSynthesizer.startSpeaking(words.toString(),
+								mSynListener);
+					}
+				} else {
+					Log.e(TAG, "获取工单数据失败，" + result.getString("info"));
+				}
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		};
+	};
+
+	Handler handlerPull = new Handler();
+	Runnable pull = new Runnable() {
+
+		// 从服务器获取数据
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			handlerPull.postDelayed(this, pullTime);
+			// 获取数据
+			// 时间戳暂时设为0
+			NetEngine.getOrderList(getOrderListHandler, app.userName,
+					app.password, timeStampShared.getLong("WOTimeStamp", 0)
+							+ "");
+			// 获取测试数据task1、task2
+			// List<SetupTask> tasks = new ArrayList<SetupTask>();
+			// tasks.add(TestData.newSetupTask1);
+			// DbUtil.addSetupTask(tasks);
+			// app.uploadData();
+			// Intent intent = new Intent("com.ecupt.orderreceiver");
+			// sendBroadcast(intent);
+			// //进行语音合成.
+			// String word = "发现新的工单,客户为"+
+			// TestData.newSetupTask1.getTask_client_name()+
+			// ",需安装"+TestData.newSetupTask1.getTask_box_num()+
+			// "台盒子，完成可获得积分"+TestData.newSetupTask1.getTask_finish_credits()+"积分";
+			// mSpeechSynthesizer.startSpeaking(word, mSynListener);
+			// toast.show();
+		}
+	};
+
+	private SynthesizerListener mSynListener = new SynthesizerListener() {
+
+		@Override
+		public void onSpeakResumed() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onSpeakProgress(int arg0, int arg1, int arg2) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onSpeakPaused() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onSpeakBegin() {
+			// TODO Auto-generated method stub
+			toast.show();
+			Vibrator vib = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
+			vib.vibrate(1000);
+		}
+
+		@Override
+		public void onCompleted(SpeechError arg0) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void onBufferProgress(int arg0, int arg1, int arg2, String arg3) {
+			// TODO Auto-generated method stub
+
+		}
+	};
+
+	private SpeechListener loginListener = new SpeechListener() {
+
+		@Override
+		public void onEvent(int arg0, Bundle arg1) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onData(byte[] arg0) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void onCompleted(SpeechError arg0) {
+			// TODO Auto-generated method stub
+
+		}
+	};
+}

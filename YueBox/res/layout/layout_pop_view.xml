@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:background="@color/white"
+    >
+    
+  		<TextView
+	        android:id="@+id/tv_pop_name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="20dp"
+	        android:layout_marginTop="5dp"
+	        android:text="黄焖鸡米饭"
+	        android:textSize="18sp"
+        	android:textColor="@color/base_blue" />
+    
+    	<TextView
+	        android:id="@+id/tv_pop_box_num"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:layout_marginLeft="40dp"
+	        android:layout_marginTop="3dp"
+	        android:layout_below="@+id/tv_pop_name"
+	        android:text="盒子(3)"
+	        android:textSize="13sp"
+	        android:textColor="@color/text_darkgray" />
+
+	     <TextView
+	        android:id="@+id/tv_pop_credits"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="40dp"
+	        android:layout_marginTop="3dp"
+	        android:layout_toRightOf="@+id/tv_pop_box_num"
+	        android:layout_below="@+id/tv_pop_name"
+	        android:text="积分(35)"
+	        android:textSize="13sp"
+	        android:textColor="@color/text_darkgray" />
+
+	    <TextView
+	        android:id="@+id/tv_pop_address"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:layout_marginLeft="20dp"
+	        android:layout_marginTop="3dp"
+	        android:paddingBottom="5dp"
+	        android:layout_below="@+id/tv_pop_box_num"
+	        android:text="西土城"
+	        android:textSize="13sp" 
+	        android:textColor="@color/text_darkgray"/>
+
+	    <Button
+	        android:id="@+id/button_pop_detail"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentRight="true"
+	        android:layout_centerVertical="true"
+	        android:layout_marginRight="14dp"
+	        android:background="@color/white"
+	        android:textSize="14sp"
+	        android:text="@string/detail"
+	        android:textColor="@color/base_blue" />
+	    <View 
+    android:id="@+id/view_grayedge"
+    android:layout_height="match_parent" 
+    android:background="@color/base_blue" 
+    android:layout_width="5dp"
+	android:layout_alignParentLeft="true">	   	
+	</View>
+
+</RelativeLayout>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="dimgray">#696969</color>
+    <color name="black">#000000</color>
+    <color name="white">#ffffff</color>
+    <color name="black_60">#99000000</color>
+    <color name="black_30">#d7000000</color>
+    <color name="greenlight">#C9E4E7</color>
+    <color name="greenhight">#3c9297</color>
+    <color name="viewfinder_mask">#60000000</color>
+    <color name="dark_text_color">#3a3a3a</color>
+    <color name="dark_text_color_light">#6a6a6a</color>
+    <color name="hint_text_color">#9a9a9a</color>
+    <color name="ocr_text_dark">#888888</color>
+    <color name="hand_note">#ded9bc</color>
+    <color name="btn_disable">#a1b0b1</color>
+    
+    
+    
+    <color name="base_blue">#3eb1bf</color> 
+    <color name="base_green">#c1e01f</color> 
+	<color name="background_gray">#f3f2f3</color> 
+	<color name="background_yellow">#fbf7ed</color> 
+	<color name="dark_green">#A8915E</color> 
+	<color name="pink">#fc5d7b</color> 
+	<color name="base_lightgray">#f2f2f2</color> 
+	<color name="base_darkgray">#e7e7e7</color> 
+	<color name="btn_orange">#ff9a00</color> 
+	
+	
+	<color name="text_lightgray">#999999</color> 
+	<color name="text_darkgray">#777777</color> 
+	<color name="line_darkgray">#5c5c5c</color> 
+</resources>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" 
+    android:padding="10dp">
+   
+    <RelativeLayout 
+        android:id="@+id/footer_take_pic"
+        android:background="@color/base_blue"
+        android:layout_width="fill_parent"
+        android:layout_height="46dp"
+       >
+    <TextView
+        android:id="@+id/tv_take_pic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/image_camera"
+        android:layout_marginLeft="10dp"
+        android:text="拍摄新照片"
+        android:textSize="18dp"
+        android:textColor="@color/white"/>
+
+    <ImageView
+        android:id="@+id/image_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="70dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/tag_camera" />
+
+</RelativeLayout>
+</LinearLayout>

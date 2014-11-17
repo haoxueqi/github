@@ -1,0 +1,85 @@
+package com.ebupt.yuebox.net;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.util.Log;
+import android.widget.Toast;
+
+import com.ebupt.yuebox.model.TimeStamp;
+import com.ebupt.yuebox.model.NetResult;
+import com.ebupt.yuebox.util.JsonParser;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+public class NetEngine {
+	private static AsyncHttpClient client = new AsyncHttpClient();
+	private final static String TAG = "netTest";
+	private static String logInfo;
+	private static NetResult result; 
+	//待部署现网后，将修改为现网访问地址
+	private final static String BASE_URL= "http://10.1.60.154:8000/BoxJXC/LFF/public/api/index.php";
+	
+	/*
+	 * 获取数据时间戳，不含参数，返回战士工单时间戳和施工人员信息时间戳
+	 */
+	public static void getTimeStamp()
+	{
+		String url = "/Account/getTimeStamp";
+		client.get(BASE_URL + url, new JsonHttpResponseHandler() {
+
+			@Override
+			public void onSuccess(int statusCode, JSONObject content) {
+				try {
+					//具体操作稍后添加，Log仅作测试用
+					TimeStamp timeStamp = new TimeStamp();
+					if(content.getBoolean("success") == true)
+						timeStamp = JsonParser.parseTimeSamp(content.getString("data"));
+					Log.v(TAG, timeStamp.getTSTimenStamp()+"   "+timeStamp.getWOTimeStamp());
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			};		
+		});
+	}
+
+	public static NetResult userLogin(String login_username, String login_password)
+	{
+		String url = "/Account/login";
+		RequestParams params = new RequestParams(); // 绑定参数
+        params.put("msisdn", login_username);
+        params.put("psw", login_password);
+		client.get(BASE_URL + url, params,new JsonHttpResponseHandler() {
+
+			@Override
+			public void onSuccess(int statusCode, JSONObject content) {
+				try {
+					//具体操作稍后添加，Log仅作测试用
+					result = new NetResult(content.getBoolean("success"),content.getString("info"),content.getString("data"));
+					if(result.getErrorCode() == true)
+						{Log.v(TAG, "登陆成功");
+					Log.v("是空么?", result+"");}
+					else
+					{
+						logInfo = result.getErrorMessage();
+					    Log.v(TAG, logInfo);
+					    Log.v("是空么?success-else里", result+"");
+					 }
+					Log.v("是空么?try里", result+"");
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					Log.v("是空么?exception里", result+"");
+				}
+				Log.v("是空么?success里", result+"");
+			};	
+			
+		});
+		Log.v("是空么?success外", result+"");
+		NetResult res = result;
+		Log.v("是空么", result+"");
+		return res;
+	}
+}

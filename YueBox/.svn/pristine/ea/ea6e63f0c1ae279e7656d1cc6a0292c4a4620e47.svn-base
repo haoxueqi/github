@@ -1,0 +1,113 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_yellow"
+    
+ >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="46dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+
+    	android:paddingLeft="@dimen/activity_horizontal_margin"
+    	android:paddingRight="@dimen/activity_horizontal_margin"
+    	android:background="@color/base_blue"
+        android:text="联系人详情"
+        android:shadowColor="#40000000"
+        android:shadowDx="0"
+        android:shadowDy="-2"
+        android:shadowRadius="1"
+        android:textStyle="bold"
+    	android:textColor="@color/white"
+    	android:textSize="22sp"
+    	android:gravity="center"
+    	/>
+
+
+
+
+	        <ImageView
+	            android:id="@+id/imageView1"
+	            android:layout_width="70dp"
+	            android:layout_height="70dp"
+	            android:layout_below="@+id/textView1"
+	            android:layout_marginLeft="15dp"
+	            android:layout_marginTop="25dp"
+	            android:src="@drawable/person_default" />
+
+	        <TableLayout
+	            android:layout_width="fill_parent"
+	            android:layout_height="120dp"
+	             android:layout_below="@+id/textView1"           
+	            android:layout_toRightOf="@+id/imageView1"
+	            android:layout_weight="1" >
+
+	            <TableRow
+	                android:id="@+id/tableRow1"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	    			android:paddingTop="24dp"
+	    			android:paddingLeft="24dp"
+	                 >
+	           <TextView
+	            android:id="@+id/NameText"
+			    android:textSize="24sp"
+			    android:textStyle="bold"
+			    android:textColor="#A8915E"
+			    android:gravity="left"/>
+	           
+	            </TableRow>
+	            
+
+	            <TableRow
+	                android:id="@+id/tableRow2"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:paddingTop="10dp"
+	    			android:paddingLeft="24dp" >
+	           	<TextView
+	           	android:layout_width="wrap_content"
+	           	android:id="@+id/PhoneText"	
+			    android:textSize="24sp"
+			    android:textStyle="bold"
+			    android:textColor="#A8915E"
+			    android:gravity="left"/>
+
+	           	<ImageView
+	           	    android:id="@+id/phone_call"
+	           	    android:layout_width="34dp"
+	           	    android:layout_height="34dp"
+	           	    android:gravity="right"
+	           	    android:layout_marginLeft="15dp"
+	           	    android:src="@drawable/access_call" />
+
+	            </TableRow>
+
+	        </TableLayout>
+			<View 
+			    android:layout_height="4dp" 
+			    android:background="#03b0c3" 
+			    android:layout_width="fill_parent"
+			    android:layout_below="@+id/textView1"
+			     android:layout_marginTop="116dp"
+			   >	    
+			</View>
+
+
+
+	        <ListView android:layout_width="wrap_content"   
+                  android:layout_height="wrap_content"   
+                  android:id="@+id/MyListView"
+                  android:divider="@null" 
+                  android:layout_below="@+id/textView1"
+	   			  android:layout_marginTop="120dp">  
+      	  </ListView>  
+
+	
+
+</RelativeLayout>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?><RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_yellow"
+    android:orientation="vertical">
+    
+
+    
+    <RelativeLayout
+        android:id="@+id/layout_title"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="@color/base_blue">
+
+        <TextView
+            android:id="@+id/textview_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:textStyle="bold"
+	        android:shadowColor="#90000000"
+	        android:shadowDx="0"
+	        android:shadowDy="-1"
+	        android:shadowRadius="2"
+	    	android:textColor="@color/white"
+	    	android:textSize="22sp"
+            android:text="抢单信息" />
+
+        <ImageView
+            android:id="@+id/image_title_right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="20dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_map" />
+
+        <ImageView
+            android:id="@+id/image_title_left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_left_white" />
+              
+    </RelativeLayout>
+    
+    <FrameLayout
+        android:id="@+id/maincontent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/radio_tab"
+        android:layout_below="@+id/layout_title" 
+        android:background="@color/background_yellow"
+        >
+
+    </FrameLayout>
+
+
+    <RadioGroup
+        android:id="@+id/radio_tab"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:background="@drawable/footer_bg"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:paddingTop="2.0dip" >     
+
+        <com.ebupt.yuebox.view.RadioButtonCenter
+            android:id="@+id/main_tab_order"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="@color/background_yellow"
+            android:button="@drawable/tab_order"
+            android:checked="true"
+            android:gravity="center" />
+
+        <com.ebupt.yuebox.view.RadioButtonCenter
+            android:id="@+id/main_tab_my"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="@color/background_yellow"
+            android:button="@drawable/tab_my"
+            android:gravity="center" />
+
+        <com.ebupt.yuebox.view.RadioButtonCenter
+            android:id="@+id/main_tab_rank"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="@color/background_yellow"
+            android:button="@drawable/tab_rank"
+            android:gravity="center" />
+    </RadioGroup>
+
+</RelativeLayout>

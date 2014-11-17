@@ -1,0 +1,134 @@
+package com.ebupt.yuebox.application;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import com.baidu.mapapi.BMapManager;
+import com.baidu.mapapi.MKGeneralListener;
+import com.baidu.mapapi.map.MKEvent;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.*;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
+import android.util.Log;
+import android.widget.Toast;
+
+/**
+ * @ClassName MyApplication
+ * @Description 程序启动时，检查数据库，并从DB中读取数据，供全局使用
+ * @author ZhouZheChen HaoXueQi
+ * @date 2014-03-12
+ * @RevisionHistory
+ */
+
+public class MyApplication extends Application{
+	
+    public boolean m_bKeyRight = true;
+    public BMapManager mBMapManager = null;
+	private List<SetupTask> setupTasks;
+	private List<AppSetupUser> appSetupUsers;
+	private List<WodAppPicture> wodAppPictures;
+	private List<Activity> activityList=new LinkedList<Activity>();
+	private static MyApplication instance;
+	public static final String strKey = "7oiPQ2LDH1lbeTGet2Rmvn1s";
+	@Override
+    public void onCreate() { 
+        // TODO Auto-generated method stub 
+        super.onCreate(); 
+		instance = this;
+		initEngineManager(this);
+        DbUtil.confirmDB(this);
+        uploadData();
+    }
+	
+	//百度地图Manager
+	public void initEngineManager(Context context) {
+        if (mBMapManager == null) {
+            mBMapManager = new BMapManager(context);
+        }
+
+        if (!mBMapManager.init(strKey,new MyGeneralListener())) {
+        	Log.w("baiduMap","mBMapManger初始化错误!");
+        }
+	}
+	
+	// 常用事件监听，用来处理通常的网络错误，授权验证错误等
+    public static class MyGeneralListener implements MKGeneralListener {
+        
+        @Override
+        public void onGetNetworkState(int iError) {
+            if (iError == MKEvent.ERROR_NETWORK_CONNECT) {
+                Toast.makeText(MyApplication.getInstance().getApplicationContext(), "您的网络出错啦！",
+                    Toast.LENGTH_LONG).show();
+            }
+            else if (iError == MKEvent.ERROR_NETWORK_DATA) {
+                Toast.makeText(MyApplication.getInstance().getApplicationContext(), "输入正确的检索条件！",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+
+    @Override
+    public void onGetPermissionState(int iError) {
+    	//非零值表示key验证未通过
+        if (iError != 0) {
+            //授权Key错误：
+        	Log.w("baiduMap","wrong key!");
+            MyApplication.getInstance().m_bKeyRight = false;
+        }
+        else{
+        	MyApplication.getInstance().m_bKeyRight = true;   
+        	}
+    	}
+    }
+    
+    public void uploadData()
+    {
+        //获取数据库中的数据
+        setupTasks = DbUtil.getSetupTasks();
+        appSetupUsers = DbUtil.getAppSetupUsers();
+        wodAppPictures = DbUtil.getWodAppPictures();
+    }
+
+	public List<SetupTask> getSetupTasks()
+	{
+      return setupTasks;
+	}
+	
+	public List<AppSetupUser> getAppSetupUsers()
+	{
+      return appSetupUsers;
+	}
+	
+	public List<WodAppPicture> getWodAppPictures()
+	{
+      return wodAppPictures;
+	}
+	 //单例模式中获取唯一的ExitApplication 实例
+	 public static MyApplication getInstance()
+	 {
+		 if(null == instance)
+		 {
+			 instance = new MyApplication();
+		 }
+		 return instance;
+
+	 }
+	 //添加Activity 到容器中
+	 public void addActivity(Activity activity)
+	 {
+		 activityList.add(activity);
+	 }
+
+	 //遍历所有Activity 并finish
+	 public void exit()
+	 {
+		 for(Activity activity:activityList)
+	 		{
+			 activity.finish();
+	 		}
+		 System.exit(0);
+	 }
+}

@@ -1,0 +1,66 @@
+package com.ebupt.yuebox.fragment;
+
+import java.util.List;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListView;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.database.AppSetupUserDao;
+import com.ebupt.yuebox.database.AppSetupUserDao.Properties;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.AppSetupUser;
+import com.ebupt.yuebox.util.Const;
+
+public class RankSecFragment extends Fragment {
+
+	List<AppSetupUser> dataList;
+	int mIndex;
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+
+		View contextView = inflater.inflate(R.layout.page_rank, container,
+				false);
+		Bundle bundle = getArguments();
+		mIndex = bundle.getInt("index");
+		Log.d("TAG", mIndex + "");
+		ListView lv = (ListView) contextView.findViewById(R.id.rank_list);
+		RankListAdapter adapter = new RankListAdapter(getActivity());
+
+		// 获取排行榜列表
+		AppSetupUserDao userDao = DbUtil.getAppSetupUserDao();
+		switch (mIndex) {
+		case Const.RANK_MONTH:
+			dataList = userDao.queryBuilder()
+					.orderDesc(Properties.User_month_credits).list();
+			break;
+		case Const.RANK_YEAR:
+			dataList = userDao.queryBuilder()
+					.orderDesc(Properties.User_year_credits).list();
+			break;
+		case Const.RANK_TOTAL:
+			dataList = userDao.queryBuilder()
+					.orderDesc(Properties.User_total_credits).list();
+			break;
+		}
+
+		adapter.setDataList(dataList);
+		adapter.setRankType(mIndex);
+		lv.setAdapter(adapter);
+		return contextView;
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+	}
+
+}

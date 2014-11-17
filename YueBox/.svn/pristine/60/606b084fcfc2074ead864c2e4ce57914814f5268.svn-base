@@ -1,0 +1,71 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ScanActivity" >
+
+    <com.ebupt.yuebox.view.CameraView
+        android:id="@+id/camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/finder_view_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <com.ebupt.yuebox.view.FinderView
+            android:id="@+id/finder_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/barcode_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="已扫描结果" />
+
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/take_pic_bg"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/viewfinder_mask"
+        android:contentDescription="@null" />
+
+    <ImageView
+        android:id="@+id/take_pic_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:contentDescription="@null"
+        android:src="@drawable/saomiao_camera" />
+
+    <TextView
+        android:id="@+id/upload_pic_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="17dp"
+        android:layout_toLeftOf="@+id/take_pic_btn"
+        android:text="上传"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/giveup_pic_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="26dp"
+        android:layout_toRightOf="@+id/take_pic_btn"
+        android:text="放弃"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+</RelativeLayout>

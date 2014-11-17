@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_yellow" >
+
+    <RelativeLayout
+        android:id="@+id/layout_name"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="@color/base_blue" >
+
+        <ImageView
+            android:id="@+id/image_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:src="@drawable/tag_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:shadowColor="#90000000"
+            android:shadowDx="0"
+            android:shadowDy="-1"
+            android:shadowRadius="2"
+            android:text="我的工单详情"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layout_basic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/layout_name"
+        android:layout_marginBottom="8dp"
+        android:background="@color/white" >
+
+        <TextView
+            android:id="@+id/tv_detail_name"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="22dp"
+            android:layout_marginTop="20dp"
+            android:text="黄焖鸡"
+            android:textColor="@color/base_blue"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/tv_box_num"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tv_detail_name"
+            android:layout_below="@+id/tv_detail_name"
+            android:layout_marginTop="15dp"
+            android:text="盒子数:22"
+            android:textColor="@color/dark_green"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tv_publish_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tv_box_num"
+            android:layout_below="@+id/tv_box_num"
+            android:layout_marginTop="6dp"
+            android:text="发布时间:1970-11-12 17:50"
+            android:textColor="@color/dark_green"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tv_end_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tv_box_num"
+            android:layout_below="@+id/tv_publish_time"
+            android:layout_marginTop="6dp"
+            android:paddingBottom="12dp"
+            android:text="截止时间:1970-11-12 17:50"
+            android:textColor="@color/dark_green"
+            android:textSize="13sp" />
+
+        <View
+            android:id="@+id/view_darkgreen"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_below="@+id/tv_end_time"
+            android:background="@color/dark_green" >
+        </View>
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="80dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="15dp"
+            android:src="@drawable/task_detail_credit" />
+
+        <TextView
+            android:id="@+id/tv_grab_credits"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="28dp"
+            android:layout_marginTop="25dp"
+            android:text="抢单 5"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_finish_credits"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tv_grab_credits"
+            android:layout_below="@+id/tv_grab_credits"
+            android:text="完成 15"
+            android:textColor="@color/white" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layout_address"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/layout_basic"
+        android:background="@color/white"
+        android:clickable="true" >
+
+        <ImageView
+            android:id="@+id/image_right2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_right" />
+
+        <ImageView
+            android:id="@+id/image_car"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="18dp"
+            android:src="@drawable/tag_address" />
+
+        <TextView
+            android:id="@+id/tv_detail_address"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:layout_toRightOf="@+id/image_car"
+            android:text="盘龙区120号"
+            android:textColor="@color/line_darkgray"
+            android:textSize="16dp" />
+
+        <View
+            android:id="@+id/view_darkgreen"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_alignParentBottom="true"
+            android:background="@color/text_lightgray" >
+        </View>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layout_mobile"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/layout_address"
+        android:background="@color/white"
+        android:clickable="true" >
+
+        <ImageView
+            android:id="@+id/image_right1"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/tag_right" />
+
+        <ImageView
+            android:id="@+id/image_mobile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="18dp"
+            android:src="@drawable/tag_phone" />
+
+        <TextView
+            android:id="@+id/tv_detail_mobile"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:layout_toRightOf="@+id/image_mobile"
+            android:text="1234567890"
+            android:textColor="@color/line_darkgray"
+            android:textSize="16dp" />
+
+        <View
+            android:id="@+id/view_darkgreen2"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_alignParentBottom="true"
+            android:background="@color/text_lightgray" >
+        </View>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/submit_btn"
+        android:layout_below="@+id/layout_mobile"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="10dp" >
+
+        <ImageView
+            android:id="@+id/edit_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/button_edit_info" />
+
+        <ImageView
+            android:id="@+id/take_pic_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/button_camera" />
+
+        <ImageView
+            android:id="@+id/scan_barcode_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/button_scan" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/submit_btn"
+        android:layout_width="240dp"
+        android:layout_height="48dp"
+        android:layout_below="@id/layout_btn"
+        android:layout_centerHorizontal="true"
+        android:background="@color/btn_orange"
+        android:shadowColor="#ffffffff"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="1"
+        android:text="完成提交"
+        android:textColor="@color/background_yellow"
+        android:textSize="18sp" />
+
+    <ImageView
+        android:id="@+id/review_pic_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/submit_btn"
+        android:layout_below="@+id/layout_mobile"
+        android:layout_marginTop="10dp"
+        android:src="@drawable/button_camera"
+        android:visibility="invisible" />
+
+</RelativeLayout>

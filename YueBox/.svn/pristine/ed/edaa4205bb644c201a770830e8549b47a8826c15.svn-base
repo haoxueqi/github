@@ -1,0 +1,88 @@
+package com.ebupt.yuebox.util;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.util.Log;
+
+import com.ebupt.yuebox.model.AppSetupUser;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.model.TimeStamp;
+
+public class JsonParser {
+	public static TimeStamp parseTimeSamp(String result) throws JSONException
+	{
+		JSONObject jSon;
+		jSon = new JSONObject(result);
+		return new TimeStamp(jSon.getLong("WOTimeStamp"), jSon.getLong("TSTimeStamp"));
+	}
+	
+	public static List<SetupTask> parseSetupTask(String result) throws JSONException
+	{
+		List<SetupTask> setupTasks = new ArrayList<SetupTask>();
+		JSONArray data = new JSONArray(result);
+		for(int i=0;i<data.length();i++)
+		{
+			JSONObject jSon = data.getJSONObject(i);
+			int lng,lat;
+			if(jSon.getString("task_client_lng").equals("") || jSon.getString("task_client_lat").equals(""))
+				continue;
+			SetupTask setupTask = new SetupTask(jSon.getString("task_id"), 
+												jSon.getLong("task_publish_time"), 
+												jSon.getLong("task_start_time"), 
+												jSon.getLong("task_end_time"), 
+												jSon.getString("task_client_name"), 
+												jSon.getString("task_client_address"),
+												(int)(Float.valueOf(jSon.getString("task_client_lng"))*1e6), 
+												(int)(Float.valueOf(jSon.getString("task_client_lat"))*1e6), 
+												jSon.getString("task_client_tel"), 
+												jSon.getString("task_client_mobile"), 
+											    jSon.getInt("task_box_num"), 
+											    jSon.getString("task_get_userid"), 
+											    jSon.getString("task_status"), 
+											    jSon.getInt("task_grab_credits"), 
+											    jSon.getInt("task_finish_credits"), 
+											    jSon.getDouble("task_finish_comment_factor"), 
+											    jSon.getString("task_finish_comment"), 
+											    jSon.getString("task_boxids"), 
+											    jSon.getLong("task_edittime"), 
+											    jSon.getString("task_client_person"), 
+											    jSon.getString("task_outstorage_id"));
+			setupTasks.add(setupTask);
+		}
+		return setupTasks;
+	}
+	
+	public static List<AppSetupUser> parseAppSetupUser(String result) throws JSONException
+	{
+		List<AppSetupUser> appSetupUsers = new ArrayList<AppSetupUser>();
+		JSONArray data = new JSONArray(result);
+		for(int i=0;i<data.length();i++)
+		{
+			JSONObject jSon = data.getJSONObject(i);
+			AppSetupUser appSetupUser = new AppSetupUser(jSon.getString("user_id"), 
+														 jSon.getString("user_name"), 
+														 jSon.getString("user_password"), 
+														 jSon.getString("user_tel"), 
+														 jSon.getString("user_email"), 
+														 jSon.getString("user_name_spell"), 
+														 jSon.getString("user_job"), 
+														 jSon.getString("user_grade"), 
+														 jSon.getString("user_department"), 
+														 jSon.getInt("user_total_credits"), 
+														 jSon.getInt("user_year_credits"), 
+														 jSon.getInt("user_month_credits"), 
+														 jSon.getInt("user_week_credits"), 
+														 jSon.getString("user_status"), 
+														 jSon.getLong("user_edittime"), 
+														 jSon.getString("user_token_id"), 
+														 jSon.getInt("user_os_type"));
+			appSetupUsers.add(appSetupUser);
+		}
+		return appSetupUsers;
+	}
+}

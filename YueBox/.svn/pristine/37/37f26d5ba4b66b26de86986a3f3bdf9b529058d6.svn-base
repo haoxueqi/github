@@ -1,0 +1,209 @@
+package com.ebupt.yuebox.ui;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.FrameLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.database.AppSetupUserDao.Properties;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.AppSetupUser;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.net.NetEngine;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+public class TaskDetailActivity extends Activity {
+
+	private MyApplication app;
+	private RelativeLayout layout_mobile;
+	private FrameLayout layout_status;
+	private TextView tv_detail_name;
+	private TextView tv_detail_address;
+	private TextView tv_detail_mobile;
+	private TextView tv_status_green;
+	private ListView list_task_detail;
+	private SimpleAdapter spTaskDetail;
+	private ArrayList<HashMap<String, String>> taskDetailArrayList;
+	private SetupTask task;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_task_detail);
+		
+		initResource();
+		updateData();
+	}
+
+	public void initResource() {
+		app = MyApplication.getInstance();
+		app.addActivity(this);//每个activity都存入容器，以便退出时使用
+		list_task_detail = (ListView) findViewById(R.id.list_task_detail);
+		tv_detail_name = (TextView) findViewById(R.id.tv_detail_name);
+		tv_detail_address = (TextView) findViewById(R.id.tv_detail_address);
+		tv_detail_mobile = (TextView) findViewById(R.id.tv_detail_mobile);
+		tv_status_green = (TextView) findViewById(R.id.tv_status_green);
+		layout_mobile = (RelativeLayout) findViewById(R.id.layout_mobile);
+		layout_status = (FrameLayout) findViewById(R.id.layout_status);
+		taskDetailArrayList = new ArrayList<HashMap<String, String>>();
+		spTaskDetail = new SimpleAdapter(this, taskDetailArrayList,
+				R.layout.item_task_detail, new String[] { "item", "content" },
+				new int[] { R.id.tv_task_detail_item,
+						R.id.tv_task_detail_content });
+		list_task_detail.setAdapter(spTaskDetail);
+		layout_mobile.setOnClickListener(new OnClickListener() {
+			// 工单详情中，点击电话栏进入拨打电话界面
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				if (task.getTask_client_tel() == null
+						|| task.getTask_client_tel().equals("")
+						|| task.getTask_client_tel().equals("null")) {
+					Intent intent = new Intent(Intent.ACTION_CALL, Uri
+							.parse("tel:" + task.getTask_client_mobile()));
+					startActivity(intent);
+				} else {
+					new AlertDialog.Builder(TaskDetailActivity.this)
+							.setTitle("请选择要拨打的电话")
+							.setSingleChoiceItems(
+									new String[] {
+											"手机："
+													+ task.getTask_client_mobile(),
+											"座机：" + task.getTask_client_tel() },
+									0, new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+											if (which == 0) {
+												Intent intent = new Intent(
+														Intent.ACTION_CALL,
+														Uri.parse("tel:"
+																+ task.getTask_client_mobile()));
+												startActivity(intent);
+											} else {
+												Intent intent = new Intent(
+														Intent.ACTION_CALL,
+														Uri.parse("tel:"
+																+ task.getTask_client_tel()));
+												startActivity(intent);
+											}
+											dialog.dismiss();
+										}
+									}).setNegativeButton("取消", null).show();
+				}
+			}
+		});
+		layout_status.setOnClickListener(new OnClickListener() {
+			// 点击抢单按钮
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				NetEngine.grabWorkOrder(grabWorkOrderHandler, app.userName,
+						app.password, task.getTask_id());
+			}
+		});
+	}
+
+	public void updateData() {
+		String task_id = getIntent().getStringExtra("task_id");
+		task = DbUtil
+				.getSetupTaskDao()
+				.queryBuilder()
+				.where(com.ebupt.yuebox.database.SetupTaskDao.Properties.Task_id
+						.eq(task_id)).list().get(0);
+		tv_detail_name.setText(task.getTask_client_name());
+		tv_detail_address.setText(task.getTask_client_address());
+		StringBuilder sb = new StringBuilder();
+		if (task.getTask_client_person() == null
+				|| task.getTask_client_person().equals("")
+				|| task.getTask_client_person().equals("null"))
+			sb.append(task.getTask_client_mobile());
+		else
+			sb.append(task.getTask_client_person() + "："
+					+ task.getTask_client_mobile());
+		if ((task.getTask_client_tel() == null
+				|| task.getTask_client_tel().equals("") || task
+				.getTask_client_tel().equals("null")) == false)
+			sb.append("、" + task.getTask_client_tel());
+		tv_detail_mobile.setText(sb.toString());
+		if (task.getTask_status().equals("01"))
+			tv_status_green.setText("抢");
+		taskDetailArrayList.clear();
+		HashMap<String, String> list;
+		list = new HashMap<String, String>();
+		list.put("item", "发布时间：");
+		list.put("content",
+				new Date(task.getTask_publish_time()).toLocaleString());
+		taskDetailArrayList.add(list);
+
+		list = new HashMap<String, String>();
+		list.put("item", "截止时间：");
+		list.put("content", new Date(task.getTask_end_time()).toLocaleString());
+		taskDetailArrayList.add(list);
+		if (task.getTask_box_num() != null) {
+			list = new HashMap<String, String>();
+			list.put("item", "盒子数量：");
+			list.put("content", task.getTask_box_num().intValue() + "个");
+			taskDetailArrayList.add(list);
+		}
+		spTaskDetail.notifyDataSetChanged();
+	}
+
+	JsonHttpResponseHandler grabWorkOrderHandler = new JsonHttpResponseHandler() {
+
+		@Override
+		public void onSuccess(JSONObject result) {
+			try {
+				if (result.getBoolean("success") == true) {
+					AppSetupUser user = DbUtil
+							.getAppSetupUserDao()
+							.queryBuilder()
+							.where(Properties.User_name_spell.eq(MyApplication
+									.getInstance().userName)).list().get(0);
+					String user_id = user.getUser_id();
+					task.setTask_status("10");
+					task.setTask_get_userid(user_id);
+					user.setUser_total_credits(user.getUser_total_credits()
+							+ task.getTask_grab_credits());
+					user.setUser_year_credits(user.getUser_year_credits()
+							+ task.getTask_grab_credits());
+					user.setUser_month_credits(user.getUser_month_credits()
+							+ task.getTask_grab_credits());
+					user.setUser_week_credits(user.getUser_week_credits()
+							+ task.getTask_grab_credits());
+					DbUtil.getSetupTaskDao().update(task);
+					DbUtil.getAppSetupUserDao().update(user);
+					tv_status_green.setText("我的");
+					Toast.makeText(TaskDetailActivity.this, "抢单成功",
+							Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(TaskDetailActivity.this,
+							result.getString("info"), Toast.LENGTH_SHORT)
+							.show();
+				}
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	};
+}

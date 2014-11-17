@@ -1,0 +1,85 @@
+package com.ebupt.yuebox.net;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.util.Log;
+import android.widget.Toast;
+
+import com.ebupt.yuebox.model.TimeStamp;
+import com.ebupt.yuebox.util.JsonParser;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+public class NetEngine {
+	private static AsyncHttpClient client = new AsyncHttpClient();
+	private final static String TAG = "netTest";
+	private static String logInfo;
+	//待部署现网后，将修改为现网访问地址
+	private final static String BASE_URL= "http://10.1.60.154:8000/BoxJXC/LFF/public/api/index.php";
+	
+	/*
+	 * 获取数据时间戳，不含参数，返回工单时间戳和施工人员信息时间戳
+	 */
+	public static void getTimeStamp(JsonHttpResponseHandler handler)
+	{
+		String url = "/Account/getTimeStamp";
+		client.get(BASE_URL + url, handler);
+	}
+	
+	/*
+	 * 登陆，参数msisdn，psw，返回登陆成功/失败信息
+	 */
+	public static void userLogin(JsonHttpResponseHandler handler, String login_username, String login_password)
+	{
+		String url = "/Account/login";
+		RequestParams params = new RequestParams(); // 绑定参数
+        params.put("msisdn", login_username);
+        params.put("psw", login_password);
+		client.post(BASE_URL + url, params, handler);		
+	}
+	
+	/*
+	 * 设置密码，参数msisdn，psw，newpsw ，返回修改密码成功/失败信息
+	 */
+	public static void userResetpsw(JsonHttpResponseHandler handler, String login_username, String login_password, String reset_passwd)
+	{
+		String url = "/Account/setpsw";
+		RequestParams params = new RequestParams(); // 绑定参数
+        params.put("msisdn", login_username);
+        params.put("psw", login_password);
+        params.put("newpsw", reset_passwd);
+		client.post(BASE_URL + url, params, handler);		
+	}
+	
+	/*
+	 * 上报设备类型，参数msisdn，psw，type ，pushid,返回上报成功/失败信息
+	 */
+	public static void userDevice(JsonHttpResponseHandler handler, String login_username, String login_password, String device_type, String push_id)
+	{
+		String url = "/Account/Updatedeviceinfo";
+		RequestParams params = new RequestParams(); // 绑定参数
+        params.put("msisdn", login_username);
+        params.put("psw", login_password);
+        params.put("type", device_type);
+        params.put("pushid", push_id);
+		client.post(BASE_URL + url, params, handler);		
+	}
+
+
+/*
+ * 获取展示工单，不含参数，返回工单时间戳和施工人员信息时间戳
+ */
+	public static void getOrderList(JsonHttpResponseHandler handler, String login_username, String login_password, String timestamp)
+	{
+		String url = "/Apporder/GetDisplayWorkOrderList";
+		RequestParams params = new RequestParams(); // 绑定参数
+        params.put("msisdn", login_username);
+        params.put("psw", login_password);
+        params.put("timestamp", timestamp);
+
+		client.get(BASE_URL + url, handler);
+	}
+
+}

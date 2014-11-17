@@ -1,0 +1,9 @@
+package com.ebupt.yuebox.util;
+
+public class Const {
+	// 扫描页面
+	public static final String SCAN_KEY = "scan_mode";
+	public static final int SCAN_VALUE_BARCODE = 0;
+	public static final int SCAN_VALUE_BOOKCOVER = 1;
+
+}

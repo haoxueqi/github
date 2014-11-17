@@ -1,0 +1,104 @@
+package com.ebupt.yuebox.fragment;
+
+import java.util.List;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.model.AppSetupUser;
+import com.ebupt.yuebox.util.Const;
+
+/**
+ * 排行榜ListView的自定义Adapter
+ * 
+ * @author xuchang
+ * 
+ */
+public class RankListAdapter extends BaseAdapter {
+
+	List<AppSetupUser> mDataList;
+	Context mContext;
+	int mRankType;
+
+	public RankListAdapter(Context ctx) {
+		mContext = ctx;
+	}
+
+	public RankListAdapter(Context ctx, List<AppSetupUser> dataList) {
+		mDataList = dataList;
+		mContext = ctx;
+	}
+
+	public void setDataList(List<AppSetupUser> dataList) {
+		mDataList = dataList;
+	}
+
+	public void setRankType(int rankType) {
+		mRankType = rankType;
+	}
+
+	@Override
+	public int getCount() {
+		if (mDataList == null)
+			return 0;
+		return mDataList.size();
+	}
+
+	@Override
+	public AppSetupUser getItem(int position) {
+		return mDataList.get(position);
+	}
+
+	@Override
+	public long getItemId(int position) {
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		ViewHolder holder;
+		if (convertView == null) {
+			convertView = LayoutInflater.from(mContext).inflate(
+					R.layout.item_rank, null);
+			holder = new ViewHolder();
+			holder.userNameTv = (TextView) convertView
+					.findViewById(R.id.user_name);
+			holder.userScoreTv = (TextView) convertView
+					.findViewById(R.id.user_score);
+			convertView.setTag(holder);
+		} else {
+			holder = (ViewHolder) convertView.getTag();
+		}
+		initView(holder, getItem(position));
+		return convertView;
+	}
+
+	private void initView(ViewHolder holder, AppSetupUser item) {
+		String userNameStr = item.getUser_name();
+		String userScoreStr = "";
+		switch (mRankType) {
+		case Const.RANK_MONTH:
+			userScoreStr = item.getUser_month_credits() + "";
+			break;
+		case Const.RANK_YEAR:
+			userScoreStr = item.getUser_year_credits() + "";
+			break;
+		case Const.RANK_TOTAL:
+			userScoreStr = item.getUser_total_credits() + "";
+			break;
+
+		}
+		holder.userNameTv.setText(userNameStr);
+		holder.userScoreTv.setText(userScoreStr);
+	}
+
+	private class ViewHolder {
+		TextView userNameTv;
+		TextView userScoreTv;
+	}
+}

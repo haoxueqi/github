@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?><RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fragment_order"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    
+    <ListView    	
+        android:id="@+id/list_order"
+    	android:layout_width="match_parent"
+    	android:layout_height="match_parent"
+    	android:visibility="gone"
+    	android:layout_marginLeft="15dp"
+	    android:layout_marginRight="15dp"
+	    android:layout_marginTop="10dp"
+	    android:layout_marginBottom="10dp"
+    	android:divider="@null">      
+    </ListView>  
+
+	<RelativeLayout
+    	android:id="@+id/order_map"
+    	android:layout_width="match_parent"
+    	android:layout_height="match_parent"
+    	android:visibility="gone">
+	    <com.baidu.mapapi.map.MapView
+	        android:id="@+id/bmapsView"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentTop="true"
+	        android:clickable="true" >
+	    </com.baidu.mapapi.map.MapView>
+	    	
+	    <Button
+	        android:id="@+id/button_location"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentRight="true"
+	        android:layout_alignParentTop="true"
+	        android:layout_marginTop="5dp"
+	        android:layout_marginRight="5dp"
+	        android:background="@drawable/tag_location" />
+    
+    	<include
+		    android:id="@+id/layout_pop_view"
+		    android:layout_width="fill_parent"
+		    android:layout_height="80dp"
+		    android:layout_marginLeft="8dp"
+		    android:layout_marginRight="8dp"
+		    android:layout_marginBottom="8dp"
+		    android:visibility="gone"
+		    android:layout_alignParentBottom="true"
+		    layout="@layout/layout_pop_view" />
+
+	</RelativeLayout>
+"
+
+	<ProgressBar
+	    android:id="@+id/progress_bar"
+	    style="?android:attr/progressBarStyleLarge"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerHorizontal="true"
+	    android:layout_centerVertical="true" />
+
+	<ImageView
+	    android:id="@+id/image_no_wifi"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentTop="true"
+	    android:layout_centerHorizontal="true"
+	    android:layout_marginTop="110dp"
+	    android:src="@drawable/pic_no_wifi"
+	    android:visibility="gone" />
+
+	<TextView
+	    android:id="@+id/tv_bad_internet"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@+id/image_no_wifi"
+	    android:layout_centerHorizontal="true"
+	    android:text="@string/connection_fail"
+	    android:textColor="@color/text_darkgray"
+	    android:textSize="22sp"
+	    android:textStyle="bold" 
+	    android:visibility="gone"/>
+		
+	<TextView
+	    android:id="@+id/tv_bad_internet1"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@+id/tv_bad_internet"
+	    android:layout_centerHorizontal="true"
+	    android:layout_marginTop="5dp"
+	    android:text="@string/overtime"
+	    android:textColor="@color/text_darkgray"
+	    android:textSize="16sp" 
+	    android:visibility="gone"/>
+
+	<Button
+	    android:id="@+id/button_again"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_below="@+id/tv_bad_internet1"
+	    android:layout_centerHorizontal="true"
+	    android:layout_marginTop="30dp"
+	    android:paddingTop="8dp"
+	    android:paddingBottom="8dp"
+	    android:paddingLeft="18dp"
+	    android:paddingRight="18dp"
+	    android:background="@color/base_blue"
+	    android:text="@string/again"
+	    android:textColor="@color/white"
+	    android:textSize="18sp"
+	    android:visibility="gone"/>
+
+	<TextView
+	    android:id="@+id/textView1"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentTop="true"
+	    android:layout_centerHorizontal="true"
+	    android:layout_marginTop="80dp"
+	    android:text="暂时没有可抢工单~请稍后~" 
+	    android:textSize="18sp"
+	    android:textColor="@color/text_darkgray"/>
+
+</RelativeLayout>

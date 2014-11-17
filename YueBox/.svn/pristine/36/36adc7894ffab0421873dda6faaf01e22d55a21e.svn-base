@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	
+	<include layout="@layout/item_my_order_header"
+		android:layout_width="fill_parent" 
+		android:layout_height="40dp" />
+
+	<RelativeLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content" 
+	    android:background="@color/white">
+	    <TextView
+	        android:id="@+id/tv_end_time"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentRight="true"
+	        android:layout_marginRight="36dp"
+	        android:layout_alignTop="@+id/tv_client"
+	        android:layout_below="@+id/layout_header"
+	        android:text="截止:4月29日"
+	        android:textSize="13sp"
+	        android:textColor="@color/dark_green"/>"
+
+	    <TextView
+	        android:id="@+id/tv_client"
+	        android:layout_width="170dp"
+	        android:layout_height="wrap_content"
+	        android:singleLine = "true"	 
+	        android:ellipsize = "end"       
+	        android:layout_marginLeft="20dp"
+	        android:layout_marginTop="10dp"
+	        android:layout_alignParentLeft="true"
+	        android:layout_below="@+id/layout_header"
+	        android:text="盘龙区营业厅分部dfsdfsdfsdfsdfsdf"
+	        android:textSize="17sp"
+	        android:textColor="@color/base_blue" />
+	    
+	    <TextView
+	        android:id="@+id/tv_address"
+	        android:layout_width="140dp"
+	        android:layout_height="wrap_content"
+	        android:singleLine = "true"	 
+	        android:ellipsize = "end"  
+	        android:layout_alignParentRight="true"
+	        android:layout_marginTop="5dp"
+	        android:layout_marginRight="36dp"
+	        android:layout_below="@+id/tv_client"
+	        android:textSize="14sp"
+	        android:textColor="@color/text_darkgray"
+	        android:text="123" 
+	        android:gravity="center_vertical|right"
+	        />
+
+	    
+		<TextView
+	        android:id="@+id/tv_box_credits"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="20dp"
+	        android:layout_marginTop="5dp"
+	        android:paddingBottom="10dp"
+	        android:layout_below="@+id/tv_client"
+	        android:layout_toRightOf="@+id/tv_box_num"
+	        android:textSize="13sp"
+	        android:textColor="@color/text_darkgray"
+	        android:text="盒子(1)  积分(2)" />
+	
+	    
+	
+	</RelativeLayout>
+		
+</LinearLayout>

@@ -1,0 +1,40 @@
+package com.ebupt.yuebox.fragment;
+
+import java.util.List;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListView;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.SetupTask;
+
+public class MyFragment extends Fragment {
+
+	ListView mOrderList;
+	MyOrderListAdapter mAdapter;
+	List<SetupTask> mDataList;
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View contextView = inflater.inflate(R.layout.fragment_my, container,
+				false);
+		mOrderList = (ListView) contextView.findViewById(R.id.my_order_list);
+		mAdapter = new MyOrderListAdapter(getActivity());
+		mDataList = DbUtil.getSetupTaskDao().loadAll();
+		mAdapter.setDataList(mDataList);
+		mOrderList.setAdapter(mAdapter);
+		return contextView;
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+	}
+
+}

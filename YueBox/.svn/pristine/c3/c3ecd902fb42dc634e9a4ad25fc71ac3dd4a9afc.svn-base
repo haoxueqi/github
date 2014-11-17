@@ -1,0 +1,111 @@
+package com.ebupt.yuebox.fragment;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.model.SetupTask;
+
+/**
+ * 用户订单ListView的自定义Adapter
+ * 
+ * @author xuchang02
+ * 
+ */
+public class MyOrderListAdapter extends BaseAdapter {
+
+	List<SetupTask> mDataList;
+	Context mContext;
+	SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd",
+			Locale.CHINA);
+
+	public MyOrderListAdapter(Context ctx) {
+		mContext = ctx;
+	}
+
+	public MyOrderListAdapter(Context ctx, List<SetupTask> dataList) {
+		mDataList = dataList;
+		mContext = ctx;
+	}
+
+	public void setDataList(List<SetupTask> dataList) {
+		mDataList = dataList;
+	}
+
+	@Override
+	public int getCount() {
+		if (mDataList == null)
+			return 0;
+		return mDataList.size();
+	}
+
+	@Override
+	public SetupTask getItem(int position) {
+		return mDataList.get(position);
+	}
+
+	@Override
+	public long getItemId(int position) {
+		return position;
+	}
+
+	@Override
+	public View getView(int position, View convertView, ViewGroup parent) {
+		ViewHolder holder;
+		if (convertView == null) {
+			convertView = LayoutInflater.from(mContext).inflate(
+					R.layout.item_my_order, null);
+//			holder = new ViewHolder();
+//			holder.taskStatus = (TextView) convertView
+//					.findViewById(R.id.task_status);
+//			holder.taskPublishTime = (TextView) convertView
+//					.findViewById(R.id.task_publish_time);
+//			holder.taskAdress = (TextView) convertView
+//					.findViewById(R.id.task_address);
+//			holder.taskTel = (TextView) convertView.findViewById(R.id.task_tel);
+//			convertView.setTag(holder);
+		} else {
+			holder = (ViewHolder) convertView.getTag();
+		}
+//		initView(holder, getItem(position));
+		return convertView;
+	}
+
+	private void initView(ViewHolder holder, SetupTask item) {
+		String taskStatusStr = item.getTask_status();
+		String taskTimeStr = mDateFormat.format(new Date(item
+				.getTask_publish_time()));
+		String taskTelStr = item.getTask_client_tel();
+		String taskAddressStr = item.getTask_client_address();
+
+		String taskTimeFormat = mContext.getResources().getString(
+				R.string.task_time);
+		String taskAddressFormat = mContext.getResources().getString(
+				R.string.task_address);
+		String taskTelFormat = mContext.getResources().getString(
+				R.string.task_tel);
+
+		holder.taskAdress.setText(String.format(taskAddressFormat,
+				taskAddressStr));
+		holder.taskPublishTime.setText(String.format(taskTimeFormat,
+				taskTimeStr));
+		holder.taskStatus.setText(taskStatusStr);
+		holder.taskTel.setText(String.format(taskTelFormat, taskTelStr));
+	}
+
+	private class ViewHolder {
+		TextView taskStatus;
+		TextView taskPublishTime;
+		TextView taskTel;
+		TextView taskAdress;
+	}
+}

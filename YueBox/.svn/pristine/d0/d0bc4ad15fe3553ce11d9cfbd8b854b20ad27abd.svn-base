@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?><RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/background_yellow">"
+
+    <RelativeLayout
+        android:id="@+id/layout_title"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/base_blue" >
+
+        <RadioGroup
+            android:id="@+id/radio_way"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:orientation="horizontal" >
+
+            <com.ebupt.yuebox.view.RadioButtonCenter
+                android:id="@+id/button_bus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_bus"
+                android:button="@drawable/button_bus"
+                android:checked="true"
+                android:gravity="center" />
+
+            <com.ebupt.yuebox.view.RadioButtonCenter
+                android:id="@+id/button_car"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_car"
+                android:button="@drawable/button_car"
+                android:gravity="center" />
+
+            <com.ebupt.yuebox.view.RadioButtonCenter
+                android:id="@+id/button_walk"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_walk"
+                android:button="@drawable/button_walk"
+                android:gravity="center" />
+        </RadioGroup>
+
+        <ImageView
+            android:id="@+id/image_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="8dp"
+            android:src="@drawable/tag_left_white" />
+
+        <Button
+            android:id="@+id/button_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/radio_way"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@+id/radio_way"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/button_search"
+            android:text="搜索" />
+    </RelativeLayout>
+    
+<RelativeLayout
+        android:id="@+id/layout_start"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/layout_title"
+        android:background="@color/white"
+        android:clickable="true" >
+
+        <TextView
+            android:id="@+id/text_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="30dp"
+            android:layout_toRightOf="@+id/image_car"
+            android:text="起点" 
+            android:textSize="16dp"
+            android:textColor="@color/dark_green"/>
+       
+        <EditText
+        android:id="@+id/edit_start"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/text_start"
+        android:layout_marginLeft="20dp"
+        android:textSize="16sp"
+        android:textColor="@color/text_darkgray"
+        android:background="@color/white" />
+        <requestFocus /> 
+    <View 
+    android:id="@+id/view_darkgreen"
+    android:layout_height="0.1dp" 
+    android:background="@color/dark_green" 
+    android:layout_width="match_parent"
+    android:layout_alignParentBottom="true">	   	
+	</View>
+
+    </RelativeLayout>
+
+<RelativeLayout
+        android:id="@+id/layout_end"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/layout_start"
+        android:background="@color/white"
+        android:clickable="true" >
+
+        <TextView
+            android:id="@+id/text_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="30dp"
+            android:layout_toRightOf="@+id/image_car"
+            android:text="终点" 
+            android:textSize="16dp"
+            android:textColor="@color/dark_green"/>
+       
+        <EditText
+        android:id="@+id/edit_end"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/text_end"
+        android:layout_marginLeft="20dp"
+        android:textSize="16sp"
+        android:textColor="@color/text_darkgray"
+        android:background="@color/white" />
+     
+    <View 
+    android:id="@+id/view_darkgreen"
+    android:layout_height="0.1dp" 
+    android:background="@color/dark_green" 
+    android:layout_width="match_parent"
+    android:layout_alignParentBottom="true">	   	
+	</View>
+
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/list_search_route"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/layout_end"
+        android:layout_centerHorizontal="true" 
+       android:layout_marginLeft="12dp"
+	    android:layout_marginRight="12dp"
+	    android:layout_marginTop="8dp"
+	    android:layout_marginBottom="8dp"
+    	android:divider="@null">
+
+    </ListView>
+
+</RelativeLayout>

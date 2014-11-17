@@ -1,0 +1,493 @@
+package com.ebupt.yuebox.fragment;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.location.LocationClientOption.LocationMode;
+import com.baidu.mapapi.BMapManager;
+import com.baidu.mapapi.map.LocationData;
+import com.baidu.mapapi.map.MapController;
+import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.MyLocationOverlay;
+import com.baidu.mapapi.map.OverlayItem;
+import com.baidu.mapapi.utils.DistanceUtil;
+import com.baidu.platform.comapi.basestruct.GeoPoint;
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.model.MapWorkOrderPop;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.net.NetEngine;
+import com.ebupt.yuebox.service.MyService;
+import com.ebupt.yuebox.ui.TaskDetailActivity;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+/**
+ * 
+ * @ClassName: MapFragment
+ * @Description: 地图模式
+ * @author ZhouZheChen
+ * @date 2014-3-6
+ * 
+ */
+public class OrderFragment extends Fragment {
+
+	private MyApplication app;
+	private MapView mMapView = null;
+	private LocationClient mLocationClient = null;
+	private LocationData locData;
+	private MyLocationOverlay myLocationOverlay;
+	private MapWorkOrderPop itemOverlay;
+	private MapController mMapController;
+	private boolean isFirstLoc = true;
+	private Animation animationBottomUp;
+	private TextView tv_pop_address;
+	private TextView tv_pop_mobile;
+	private ListView list_order;
+	private RelativeLayout layout_map;
+	private RelativeLayout layout_pop_view;
+	private ImageView image_title_right;
+	private ImageView image_title_left;
+	private Button button_pop_detail;
+	private Button button_location;
+	private Button button_online;
+	private ArrayList<HashMap<String, String>> orderArrayList;
+	private SimpleAdapter spOrder;
+	private Drawable mark_red;
+	private Drawable mark_green;
+	private int index; // 选择的工单索引
+	private boolean locState = false;
+	private int state = STATE_LIST;
+	private Intent intent;
+	private List<SetupTask> setupTasks;
+	private List<SetupTask> lastSetupTasks;
+	private final static String TAG = "OrderFragment";
+	private final static int STATE_LIST = 0;
+	private final static int STATE_MAP = 1;
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		/**
+		 * 使用地图sdk前需先初始化BMapManager. BMapManager是全局的，可为多个MapView共用，它需要地图模块创建前创建，
+		 * 并在地图地图模块销毁后销毁，只要还有地图模块在使用，BMapManager就不应该销毁
+		 */
+		app = (MyApplication) getActivity().getApplication();
+		if (app.mBMapManager == null) {
+			app.mBMapManager = new BMapManager(getActivity()
+					.getApplicationContext());
+			/**
+			 * 如果BMapManager没有初始化则初始化BMapManager
+			 */
+			app.mBMapManager.init(MyApplication.strKey,
+					new MyApplication.MyGeneralListener());
+		}
+		// 注意：请在试用setContentView前初始化BMapManager对象，否则会报错
+		View view = inflater.inflate(R.layout.fragment_order, container, false);
+		return view;
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		initResource();
+		initMap();
+		updateListData();
+		updateMapData();
+	}
+
+	/*
+	 * 初始化除地图模块以外的内容
+	 */
+	public void initResource() {
+		// 初始化资源
+		layout_map = (RelativeLayout) getActivity()
+				.findViewById(R.id.order_map);
+		layout_pop_view = (RelativeLayout) getActivity().findViewById(
+				R.id.layout_pop_view);
+		list_order = (ListView) getActivity().findViewById(R.id.list_order);
+		image_title_right = (ImageView) getActivity().findViewById(
+				R.id.image_title_right);
+		image_title_left = (ImageView) getActivity().findViewById(
+				R.id.image_title_left);
+		tv_pop_address = (TextView) getActivity().findViewById(
+				R.id.tv_pop_address);
+		tv_pop_mobile = (TextView) getActivity().findViewById(
+				R.id.tv_pop_mobile);
+		button_pop_detail = (Button) getActivity().findViewById(
+				R.id.button_pop_detail);
+		button_location = (Button) getActivity().findViewById(
+				R.id.button_location);
+		button_online = (Button) getActivity().findViewById(R.id.button_online);
+		button_online.setBackgroundResource(R.drawable.button_offline);
+		initAnimation();
+		orderArrayList = new ArrayList<HashMap<String, String>>();
+		spOrder = new SimpleAdapter(getActivity(), orderArrayList,
+				R.layout.item_order, new String[] { "client", "address",
+						"box_credits", "distance", "new" }, new int[] {
+						R.id.tv_client, R.id.tv_address, R.id.tv_box_credits,
+						R.id.tv_distance, R.id.tv_new });
+		list_order.setAdapter(spOrder);
+		list_order.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> ViewGoup, View view,
+					int position, long id) {
+				// TODO Auto-generated method stub
+				Intent intent = new Intent(getActivity(),
+						TaskDetailActivity.class);
+				intent.putExtra("task_id",
+						orderArrayList.get(position).get("id"));
+				startActivity(intent);
+			}
+		});
+		image_title_right.setOnClickListener(new OnClickListener() {
+			// 标题栏右侧按钮
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				if (state == STATE_LIST) {
+					// layout_list.setVisibility(View.GONE);
+					image_title_right.setVisibility(View.GONE);
+					layout_map.setVisibility(View.VISIBLE);
+					image_title_left.setVisibility(View.VISIBLE);
+					state = STATE_MAP;
+				}
+			}
+		});
+		image_title_left.setOnClickListener(new OnClickListener() {
+			// 标题栏左侧按钮
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+
+				image_title_right.setVisibility(View.VISIBLE);
+				layout_map.setVisibility(View.GONE);
+				layout_pop_view.setVisibility(View.GONE);
+				image_title_left.setVisibility(View.GONE);
+				state = STATE_LIST;
+			}
+		});
+		button_location.setOnClickListener(new OnClickListener() {
+			// 点击我的位置按钮，地图中心移动到该点
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				mMapController.animateTo(new GeoPoint(
+						(int) (locData.latitude * 1e6),
+						(int) (locData.longitude * 1e6)));
+			}
+		});
+		button_online.setOnClickListener(new OnClickListener() {
+			// 点击在线/离线按钮更在状态
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				if (app.isOnline == false) {
+					NetEngine.modifyUserStatus(modifyUserStatusOnHandler,
+							app.userName, app.password, "010");
+				} else if (app.isOnline == true) {
+					NetEngine.modifyUserStatus(modifyUserStatusOffHandler,
+							app.userName, app.password, "011");
+				}
+			}
+		});
+		tv_pop_mobile.setOnClickListener(new OnClickListener() {
+			// 点击电话号码后，拨打电话
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:"
+						+ setupTasks.get(index).getTask_client_mobile()));
+				startActivity(intent);
+			}
+		});
+		button_pop_detail.setOnClickListener(new OnClickListener() {
+			// 地图模式中，点击弹出窗口的详情按钮，跳转到工单详情页面
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Intent intent = new Intent(getActivity(),
+						TaskDetailActivity.class);
+				intent.putExtra("task_id", setupTasks.get(index).getTask_id());
+				startActivity(intent);
+			}
+		});
+		intent = new Intent(getActivity(), MyService.class);
+		getActivity().registerReceiver(myReceiver,
+				new IntentFilter("com.ebupt.orderreceiver"));
+	}
+
+	public void initMap() {
+
+		mMapView = (MapView) getActivity().findViewById(R.id.bmapsView);
+		mMapController = mMapView.getController();
+		// 得到mMapView的控制权,可以用它控制和驱动平移和缩放
+		GeoPoint point = new GeoPoint((int) (39.915 * 1E6),
+				(int) (116.404 * 1E6));
+		// 用给定的经纬度构造一个GeoPoint，单位是微度 (度 * 1E6)
+		mMapController.setCenter(point);// 设置地图中心点
+		mMapController.setZoom(12);// 设置地图zoom级别
+		mLocationClient = new LocationClient(getActivity()
+				.getApplicationContext()); // 声明LocationClient类
+		mLocationClient.registerLocationListener(myListener); // 注册监听函数
+		LocationClientOption option = new LocationClientOption();
+		option.setLocationMode(LocationMode.Hight_Accuracy);// 设置定位模式
+		option.setCoorType("bd09ll");// 返回的定位结果是百度经纬度，默认值gcj02
+		option.setScanSpan(5000);// 设置发起定位请求的间隔时间为5000ms
+		option.setIsNeedAddress(true);// 返回的定位结果包含地址信息
+		option.setNeedDeviceDirect(true);// 返回的定位结果包含手机机头的方向
+		mLocationClient.setLocOption(option);
+		locData = new LocationData();
+		mLocationClient.start();
+		if (mLocationClient != null && mLocationClient.isStarted())
+			mLocationClient.requestLocation();
+		else
+			Log.d("Location", "locClient is null or not started");
+		myLocationOverlay = new MyLocationOverlay(mMapView);
+		mMapView.getOverlays().add(myLocationOverlay);
+		mark_green = getResources().getDrawable(R.drawable.tag_task_green);
+		// 创建IteminizedOverlay
+		itemOverlay = new MapWorkOrderPop(mark_green, mMapView, this);
+		// 将IteminizedOverlay添加到MapView中
+		mMapView.getOverlays().add(itemOverlay);
+	}
+
+	public void initAnimation() {
+		// 初始化动画
+		animationBottomUp = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+				0, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF,
+				1, Animation.RELATIVE_TO_SELF, 0);
+		animationBottomUp.setDuration(300);
+	}
+
+	public void showPopView(int position) {
+		// 在地图上点击按钮弹出窗口
+		this.index = Integer.parseInt(itemOverlay.getItem(position).getTitle());
+		mMapController.animateTo(new GeoPoint(setupTasks.get(index)
+				.getTask_client_lat(), setupTasks.get(index)
+				.getTask_client_lng()));
+		tv_pop_address.setText("地址："
+				+ setupTasks.get(index).getTask_client_address());
+		tv_pop_mobile.setText("联系电话："
+				+ setupTasks.get(index).getTask_client_mobile());
+		layout_pop_view.startAnimation(animationBottomUp);
+		layout_pop_view.setVisibility(View.VISIBLE);
+	}
+
+	public void updateListData() {
+		if (setupTasks == null)
+			lastSetupTasks = new ArrayList<SetupTask>();
+		else if (isFirstLoc == false)
+			lastSetupTasks = setupTasks;
+		setupTasks = app.getSetupTasks();
+		orderArrayList.clear();
+		for (int i = 0; i < setupTasks.size(); i++) {
+			HashMap<String, String> list = new HashMap<String, String>();
+			list.put("id", setupTasks.get(i).getTask_id());
+			list.put("client", setupTasks.get(i).getTask_client_name());
+			list.put("address", setupTasks.get(i).getTask_client_address());
+			list.put("mobile", setupTasks.get(i).getTask_client_mobile());
+			list.put("index", i + "");
+			double distance;
+			if (setupTasks.get(i).getTask_client_lat() == 0
+					|| setupTasks.get(i).getTask_client_lng() == 0
+					|| locState == false)
+				list.put("distance", "未知");
+			else {
+				distance = DistanceUtil.getDistance(new GeoPoint(
+						(int) (locData.latitude * 1e6),
+						(int) (locData.longitude * 1e6)),
+						new GeoPoint(setupTasks.get(i).getTask_client_lat(),
+								setupTasks.get(i).getTask_client_lng()));
+				// 保留两位小树
+				list.put("distance",
+						(double) Math.round((double) (distance / 1000 * 100))
+								/ 100 + " km");
+			}
+			list.put("new", "新");
+			if (isFirstLoc == false) {
+				for (int j = 0; j < lastSetupTasks.size(); j++) {
+					if (lastSetupTasks.get(j).getTask_id()
+							.equals(setupTasks.get(i).getTask_id())) {
+						list.put("new", "");
+						break;
+					}
+				}
+			}
+			list.put("box_credits", "盒子（"+setupTasks.get(i).getTask_box_num()+"） " +
+				       "积分（"+(setupTasks.get(i).getTask_grab_credits()+setupTasks.get(i).getTask_finish_credits())+"）");
+			if (setupTasks.get(i).getTask_status().equals("00")) {
+				orderArrayList.add(list);
+			}
+		}
+		spOrder.notifyDataSetChanged();
+	}
+
+	public void updateMapData() {
+		itemOverlay.removeAll();
+		for (int i = 0; i < setupTasks.size(); i++) {
+			if (setupTasks.get(i).getTask_status().equals("00")) {
+				GeoPoint point1 = new GeoPoint(setupTasks.get(i)
+						.getTask_client_lat(), setupTasks.get(i)
+						.getTask_client_lng());
+				OverlayItem item = new OverlayItem(point1, i + "", "item");
+				itemOverlay.addItem(item);
+			}
+		}
+		mMapView.refresh();
+	}
+
+	// 返回键逻辑
+	public boolean excuteBack() {
+		if (state == STATE_MAP) {
+			image_title_right.setVisibility(View.VISIBLE);
+			layout_map.setVisibility(View.GONE);
+			layout_pop_view.setVisibility(View.GONE);
+			image_title_left.setVisibility(View.GONE);
+			state = STATE_LIST;
+			return true;
+		}
+		return false;
+	}
+
+	JsonHttpResponseHandler modifyUserStatusOnHandler = new JsonHttpResponseHandler() {
+		@Override
+		public void onSuccess(JSONObject result) {
+			try {
+				if (result.getBoolean("success") == true) {
+					button_online
+							.setBackgroundResource(R.drawable.button_online);
+					button_online.setText("在线");
+					getActivity().startService(intent);
+					app.isOnline = true;
+				} else {
+					Log.e(TAG, result.getString("info"));
+				}
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	};
+
+	JsonHttpResponseHandler modifyUserStatusOffHandler = new JsonHttpResponseHandler() {
+		@Override
+		public void onSuccess(JSONObject result) {
+			try {
+				if (result.getBoolean("success") == true) {
+					button_online
+							.setBackgroundResource(R.drawable.button_offline);
+					button_online.setText("离线");
+					getActivity().stopService(intent);
+					app.isOnline = false;
+				} else {
+					Log.e(TAG, result.getString("info"));
+				}
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	};
+
+	//
+	BroadcastReceiver myReceiver = new BroadcastReceiver() {
+		// 由service告诉OrderFragment需要更新数据了
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			if (intent.getAction().equals("com.ebupt.orderreceiver")) {
+				updateMapData();
+				updateListData();
+			}
+		}
+	};
+
+	BDLocationListener myListener = new BDLocationListener() {
+		// 定位相关
+		@Override
+		public void onReceiveLocation(BDLocation location) {
+			// TODO Auto-generated method stub
+			if (location == null || location.getLatitude() == 4.9E-324
+					|| location.getLongitude() == 4.9E-324) {
+				return;
+			}
+			locData.latitude = location.getLatitude();
+			locData.longitude = location.getLongitude();
+			locData.direction = location.getDirection();
+			locState = true;
+			// locData.latitude = 25.1f; //测试用数据
+			// locData.longitude = 102.73f;
+			// address = "荷塘月色";
+			// city = "云南";
+			myLocationOverlay.setData(locData);
+			mMapView.refresh();
+			if (isFirstLoc == true) {
+				mMapController.animateTo(new GeoPoint(
+						(int) (locData.latitude * 1e6),
+						(int) (locData.longitude * 1e6)));
+				updateListData();
+				updateMapData();
+				isFirstLoc = false;
+			}
+		}
+
+		@Override
+		public void onReceivePoi(BDLocation arg0) {
+			// TODO Auto-generated method stub
+
+		}
+	};
+
+	@Override
+	public void onDestroy() {
+		mMapView.destroy();
+		mLocationClient.stop();
+		getActivity().unregisterReceiver(myReceiver);
+		super.onDestroy();
+	}
+
+	@Override
+	public void onPause() {
+		mMapView.onPause();
+		super.onPause();
+	}
+
+	@Override
+	public void onResume() {
+		mMapView.onResume();
+		super.onResume();
+	}
+}

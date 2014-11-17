@@ -1,0 +1,325 @@
+package com.ebupt.yuebox.ui;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.Window;
+import android.widget.ImageView;
+import android.widget.RadioGroup;
+import android.widget.RadioGroup.OnCheckedChangeListener;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.fragment.MyFragment;
+import com.ebupt.yuebox.fragment.OrderFragment;
+import com.ebupt.yuebox.fragment.RankFragment;
+import com.ebupt.yuebox.model.TimeStamp;
+import com.ebupt.yuebox.net.NetEngine;
+import com.ebupt.yuebox.util.JsonParser;
+import com.loopj.android.http.JsonHttpResponseHandler;
+//import com.ebupt.yuebox.util.DisplayUtil;
+
+/**
+ * @ClassName MainActivity
+ * @Description 主界面,底部有3个按钮控制页面
+ * @author ZhouZheChen
+ * @date 2014-03-12
+ * @RevisionHistory
+ */
+
+public class MainActivity extends FragmentActivity{
+	public static String currentTab = "";// 当前选中的tab栏
+	private FragmentManager fm;
+	private long mExitTime;
+	private RadioGroup tab_group;// 底部tab栏
+	private TextView textview_title;  //顶部标题栏文字
+	private ImageView image_title_right;
+	private ImageView image_title_left;
+	private int orderState;  //列表模式或地图模式，保证tab切换后保留之前的显示状态
+	private final static int ORDER_LIST = 1;
+	private final static int ORDER_MAP = 2;	
+	private final static String TAB_ORDER = "0";
+	private final static String TAB_MY = "1";
+	private final static String TAB_RANK = "2";
+
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.activity_main);
+		MyApplication.getInstance().addActivity(this);//每个activity都存入容器，以便退出时使用		
+		fm = getSupportFragmentManager();
+//		DisplayUtil.init(this);
+		initResource();
+		//此处开始测试接口
+		
+		getTimeStamp();
+		//userLogin("xiaoming", "123456");
+		//userLogin("xiaoming", "123434");
+		//userResetpsw("xiaoming","123434","123456");		//设置密码服务器接口有问题？？
+		//userResetpsw("xiaoming","123456","111111");
+		//userDevice("xiaoming","123434","1","abcdefg123");
+		//userDevice("xiaoming","123456","1","abcdefg123");
+	}
+	//----时间戳-----------
+	public void getTimeStamp()
+	{
+		JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(JSONObject result) {
+				try {
+					//具体操作稍后添加，Log仅作测试用,使用SharedPreference存储本地
+					TimeStamp timeStamp = new TimeStamp();
+					if(result.getBoolean("success") == true)
+						timeStamp = JsonParser.parseTimeSamp(result.getString("data"));
+					Log.v("timestamp", timeStamp.getTSTimenStamp()+"   "+timeStamp.getWOTimeStamp());
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			};	
+				};	
+		NetEngine.getTimeStamp(handler);
+	}	
+	//----登陆----------
+	public void userLogin(String login_username, String login_password)
+	{
+		JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(JSONObject result) {
+				try {
+					//具体操作稍后添加，Log仅作测试用
+					if(result.getBoolean("success") == true)
+					{
+						Log.v("login", result.getString("info"));
+						Toast.makeText(MainActivity.this, "我是activity中的toast，登陆成功"+result.getString("info"), Toast.LENGTH_SHORT).show();
+					}
+					else
+					{
+						Log.v("login", result.getString("info"));
+					}   
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+				};	
+		NetEngine.userLogin(handler, login_username, login_password);
+	}
+	
+	//---首次登陆设置密码----------
+	public void userResetpsw(String login_username, String login_password, String reset_passwd)
+	{
+		JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(JSONObject result) {
+				try {
+					//具体操作稍后添加，Log仅作测试用
+					if(result.getBoolean("success") == true)
+					{
+						Log.v("resetpsw", result.getString("info"));
+					}
+					else
+					{
+						Log.v("resetpsw", result.getString("info"));
+					}   
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+				};	
+		NetEngine.userResetpsw(handler, login_username, login_password, reset_passwd);
+	}	
+	
+	
+	//---上报设备类型----------
+	public void userDevice(String login_username, String login_password, String device_type, String push_id)
+	{
+		JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(JSONObject result) {
+				try {
+					//具体操作稍后添加，Log仅作测试用
+					if(result.getBoolean("success") == true)
+					{
+						Log.v("device", result.getString("info"));
+					}
+					else
+					{
+						Log.v("device", result.getString("info"));
+					}   
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+				};	
+		NetEngine.userDevice(handler, login_username, login_password, device_type, push_id);
+	}
+	
+	
+	//----展示工单-----------
+	public void getOrderList(String login_username, String login_password, String timestamp)
+	{
+		JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
+			
+			@Override
+			public void onSuccess(JSONObject result) {
+				try {
+					//具体操作稍后添加，Log仅作测试用,使用SharedPreference存储本地
+					TimeStamp timeStamp = new TimeStamp();
+					if(result.getBoolean("success") == true)
+						timeStamp = JsonParser.parseTimeSamp(result.getString("data"));
+					Log.v("timestamp", timeStamp.getTSTimenStamp()+"   "+timeStamp.getWOTimeStamp());
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			};	
+				};	
+		NetEngine.getOrderList(handler,login_username,login_password,timestamp);
+	}	
+	/**
+	 * 初始化各类控件资源
+	 */  
+	public void initResource() {
+		tab_group = (RadioGroup) findViewById(R.id.radio_tab);
+		textview_title = (TextView) findViewById(R.id.textview_title);
+		image_title_left = (ImageView) findViewById(R.id.image_title_left);
+		image_title_right = (ImageView) findViewById(R.id.image_title_right);
+		tab_group.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+			public void onCheckedChanged(RadioGroup group, int checkedId) {
+				// hideInput();
+				FragmentTransaction tr = fm.beginTransaction();
+				Fragment currentFragment = fm.findFragmentByTag(currentTab);
+				if (currentFragment != null)
+					tr.hide(currentFragment);
+				Fragment toaddFragment = null;
+				switch (checkedId) {
+				case R.id.main_tab_class:
+					currentTab = TAB_ORDER;
+					toaddFragment = fm.findFragmentByTag(currentTab);
+					if (toaddFragment == null)
+						toaddFragment = new OrderFragment();
+					if(orderState == ORDER_LIST)
+						image_title_left.setVisibility(View.VISIBLE);
+					else if(orderState == ORDER_MAP)
+						image_title_right.setVisibility(View.VISIBLE);
+					textview_title.setText("工单信息");
+					break;
+				case R.id.main_tab_my:
+					currentTab = TAB_MY;
+					if(image_title_right.isShown())
+						orderState = ORDER_MAP;
+					else if(image_title_left.isShown())
+						orderState = ORDER_LIST;
+					toaddFragment = fm.findFragmentByTag(currentTab);
+					if (toaddFragment == null)
+					   toaddFragment = new MyFragment();
+					image_title_left.setVisibility(View.GONE);
+					image_title_right.setVisibility(View.GONE);
+					textview_title.setText("我的信息");
+					break;
+				case R.id.main_tab_settings:
+					currentTab = TAB_RANK;
+					if(image_title_right.isShown())
+						orderState = ORDER_MAP;
+					else if(image_title_left.isShown())
+						orderState = ORDER_LIST;
+					toaddFragment = fm.findFragmentByTag(currentTab);
+					if (toaddFragment == null)
+						toaddFragment = new RankFragment();
+					image_title_left.setVisibility(View.GONE);
+					image_title_right.setVisibility(View.GONE);
+					textview_title.setText("排行榜");
+					break;
+				default:
+					toaddFragment = currentFragment;
+					break;
+				}
+
+				if (toaddFragment.isAdded()) {
+					tr.show(toaddFragment);
+				} else {
+					tr.add(R.id.maincontent, toaddFragment, currentTab);
+					tr.show(toaddFragment);
+				}
+				tr.commitAllowingStateLoss();
+			}
+		});
+
+		if (currentTab == null || currentTab.equals(""))
+		{
+			currentTab = TAB_ORDER;
+			textview_title.setText("工单信息");
+		}
+		showFragment(TAB_ORDER);
+	}
+
+	/**
+	 * 根据fragmentTag来决定显示哪个fragment
+	 * 
+	 * @param fragmentTag
+	 */
+	public void showFragment(String fragmentTag) {
+		FragmentTransaction tr = fm.beginTransaction();
+		Fragment currentFragment = fm.findFragmentByTag(currentTab);
+		if (currentFragment != null)
+			tr.hide(currentFragment);
+		currentTab = fragmentTag;
+		Fragment toaddFragment = null;
+		toaddFragment = fm.findFragmentByTag(fragmentTag);
+		if (toaddFragment == null) {
+			if (fragmentTag.equals(TAB_ORDER)) {
+				toaddFragment = new OrderFragment();
+			} else if (fragmentTag.equals(TAB_MY)) {
+				toaddFragment = new MyFragment();
+			} else if (fragmentTag.equals(TAB_RANK)) {
+				toaddFragment = new RankFragment();
+			}
+		}
+		if (!toaddFragment.isAdded())
+			tr.add(R.id.maincontent, toaddFragment, currentTab);
+		tr.show(toaddFragment);
+		tr.commit();
+	}
+	
+	//--点击两次back键退出程序---------------
+    public boolean onKeyDown(int keyCode,KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+        		if(currentTab.equals(TAB_ORDER) && ((OrderFragment) fm.findFragmentByTag(currentTab)).excuteBack())
+        			return true;
+                if ((System.currentTimeMillis() - mExitTime) > 2000) {
+                        Object mHelperUtils;
+                        Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                        mExitTime = System.currentTimeMillis();
+                } else {
+                       // finish();
+                        //System.exit(0);
+                       // android.os.Process.killProcess(android.os.Process.myPid()); 
+                	DbUtil.tempTest();
+                	MyApplication.getInstance().exit();            		
+                }
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }	
+}

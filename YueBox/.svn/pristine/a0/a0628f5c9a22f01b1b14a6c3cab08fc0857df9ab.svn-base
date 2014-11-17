@@ -1,0 +1,5 @@
+package com.ebupt.yuebox.ui;
+
+
+public final class TestData {
+}

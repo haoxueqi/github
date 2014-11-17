@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?><RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#03b0c3" >
+
+        <RadioGroup
+            android:id="@+id/radio_way"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:orientation="horizontal" >
+
+            <com.ebupt.yuebox.view.RadioButtonCenter
+                android:id="@+id/button_bus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_bus"
+                android:button="@drawable/button_bus"
+                android:checked="true"
+                android:gravity="center" />
+
+            <com.ebupt.yuebox.view.RadioButtonCenter
+                android:id="@+id/button_car"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_car"
+                android:button="@drawable/button_car"
+                android:gravity="center" />
+
+            <com.ebupt.yuebox.view.RadioButtonCenter
+                android:id="@+id/button_walk"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_walk"
+                android:button="@drawable/button_walk"
+                android:gravity="center" />
+        </RadioGroup>
+
+        <ImageView
+            android:id="@+id/image_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/radio_way"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/tag_cancel" />
+
+        <Button
+            android:id="@+id/button_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/radio_way"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@+id/radio_way"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/button_search"
+            android:text="搜索" />
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/edit_start"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/relativeLayout1"
+        android:layout_toRightOf="@+id/textView1">
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/edit_end"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:layout_alignLeft="@+id/edit_start"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/edit_start"/>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/edit_start"
+        android:layout_alignBottom="@+id/edit_start"
+        android:layout_alignParentLeft="true"
+        android:textSize="20sp"
+        android:text="起点：" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/edit_end"
+        android:layout_alignBottom="@+id/edit_end"
+        android:layout_alignParentLeft="true"
+        android:textSize="20sp"
+        android:text="终点：" />
+
+    <ListView
+        android:id="@+id/list_search_route"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/edit_end"
+        android:layout_centerHorizontal="true" >
+
+    </ListView>
+
+</RelativeLayout>

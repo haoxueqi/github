@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white" >
+
+    <TextView
+        android:id="@+id/tv_client"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/task_image"
+        android:text="店铺:移动营业厅"
+        android:textColor="@color/text_darkgray"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tv_take_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_client"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/task_image"
+        android:text="拍摄时间:2014/04/12 15:00"
+        android:textColor="@color/text_darkgray"
+        android:textSize="15sp" />
+
+    <ImageView
+        android:id="@+id/task_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/pic_default_image" />
+
+    <View
+        android:id="@+id/viewyellow_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_below="@+id/task_image"
+        android:background="@color/background_yellow" >
+    </View>
+
+    <TextView
+        android:id="@+id/delete_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/tv_client"
+        android:layout_marginRight="16dp"
+        android:text="删除" />
+
+</RelativeLayout>

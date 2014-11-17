@@ -1,0 +1,39 @@
+package com.ebupt.yuebox.jpush;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import cn.jpush.android.api.JPushInterface;
+
+import com.ebupt.yuebox.util.GetOrderList;
+
+public class JPushReceiver extends BroadcastReceiver{
+
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		// TODO Auto-generated method stub
+		Log.v("JPush","get it");
+		Bundle bundle = intent.getExtras();
+        if (JPushInterface.ACTION_REGISTRATION_ID.equals(intent.getAction())) 
+        {        	
+    		SharedPreferences userStampShared = context.getSharedPreferences("userInfo", 0);
+			userStampShared.edit().putString("PUSH_ID", JPushInterface.getRegistrationID(context)).commit();
+        } 
+        else if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) 
+        {
+            Log.v("JPush", "收到了自定义消息。消息内容是：" + bundle.getString(JPushInterface.EXTRA_MESSAGE));
+            // 具体操作，视服务器发来具体数据还是TAG而定
+        }
+        else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction()))
+        {
+        	Log.v("JPush","新的订单");
+        	Handler handler = new Handler();
+        	handler.post(new GetOrderList(handler, false));
+        }
+	}
+
+}

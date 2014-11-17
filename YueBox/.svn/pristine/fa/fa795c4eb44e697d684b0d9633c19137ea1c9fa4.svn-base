@@ -1,0 +1,66 @@
+package com.ebupt.yuebox.util;
+
+import java.util.List;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.util.Log;
+
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.net.NetEngine;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+public class GetOrderList implements Runnable{
+	
+	private MyApplication app;
+	private SharedPreferences timeStampShared;
+	private Handler handler;
+	private final static String TAG = "GetOrderList";
+	
+	public GetOrderList(Handler handler)
+	{
+		this.handler = handler;
+		app = MyApplication.getInstance();
+		timeStampShared = app.getSharedPreferences("time_stamp", 0); 
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+	    //获取数据, 时间戳暂时设为0
+		timeStampShared = app.getSharedPreferences("time_stamp", 0);		
+		NetEngine.getOrderList(getOrderListHandler, app.userName, app.password, timeStampShared.getLong("WOTimeStamp", 0));
+		handler.removeCallbacks(this);
+	}
+	
+	JsonHttpResponseHandler getOrderListHandler = new JsonHttpResponseHandler(){
+		@Override
+		public void onSuccess(JSONObject result) {
+			try {
+				if(result.getBoolean("success") == true)
+				{//将获取的工单信息存储数据库，并广播通知UI刷新
+					JSONObject data = new JSONObject(result.getString("data"));
+					timeStampShared.edit().putLong("WOTimeStamp", data.getLong("WOTimeStamp")).commit();
+					List<SetupTask> setupTasks = JsonParser.parseSetupTask(data.getString("WorkOrderList"));
+					DbUtil.addSetupTask(setupTasks);
+					app.uploadData();
+			    	Intent intent = new Intent("com.ebupt.orderreceiver");
+			    	app.sendBroadcast(intent);
+				}
+				else
+				{
+					Log.e(TAG, "获取工单数据失败，"+result.getString("info"));
+				}
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		};		
+	};	
+}

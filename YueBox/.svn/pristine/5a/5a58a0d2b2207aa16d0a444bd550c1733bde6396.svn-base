@@ -1,0 +1,258 @@
+package com.ebupt.yuebox.ui;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+
+
+
+
+
+
+
+
+
+import android.os.Bundle;
+import android.os.Handler;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.Window;
+import android.app.ProgressDialog;
+
+
+
+
+
+
+
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.net.NetEngine;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+/**
+ * 
+ * @ClassName: UserResetpsw
+ * @Description: 首次登录修改密码
+ * @author haoxueqi
+ * @date 2014-3-11
+ * 
+ */
+public class UserResetpsw extends Activity {
+
+	private EditText reset_passwd;
+	private EditText rereset_passwd;
+	private Button reset_submit;
+	private SharedPreferences sp;
+	private ProgressDialog pd;
+	private String userNameValue;
+	private String userPasswordValue;
+	private String resetPswValue;
+	private String push_id;
+	private long mExitTime;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		   setContentView(R.layout.user_resetpsw);   
+		   
+		   MyApplication.getInstance().addActivity(this);//每个activity都存入容器，以便退出时使用		
+  
+		sp = this.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+		
+		reset_passwd=(EditText)findViewById(R.id.reset_passwd);
+		rereset_passwd=(EditText)findViewById(R.id.rereset_passwd);
+		reset_submit=(Button)findViewById(R.id.reset_submit);
+		
+		//上报设备类型-----
+		push_id = sp.getString("PUSH_ID", "");
+		userNameValue = sp.getString("USER_NAME", "");
+		userPasswordValue = sp.getString("PASS_WORD", "");
+		userDevice(userNameValue,userPasswordValue,"1",push_id); 
+		
+        reset_passwd.setOnFocusChangeListener(new OnFocusChangeListener()
+        {
+ 
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                // TODO Auto-generated method stub
+                if(!hasFocus){
+                    if(reset_passwd.getText().toString().trim().length()<6){
+                        Toast.makeText(UserResetpsw.this, "密码不能少于6个字符", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+             
+        });
+        rereset_passwd.setOnFocusChangeListener(new OnFocusChangeListener()
+        {
+ 
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                // TODO Auto-generated method stub
+                if(!hasFocus){
+                    if(!rereset_passwd.getText().toString().trim().equals(reset_passwd.getText().toString().trim())){
+                        Toast.makeText(UserResetpsw.this, "两次密码输入不一致", Toast.LENGTH_SHORT).show(); 
+                    }
+                }
+            }
+             
+        });
+        
+        reset_submit.setOnClickListener(new OnClickListener(){
+        	 
+            @Override
+            public void onClick(View v) {
+    			//隐藏键盘
+    			InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+    			imm.hideSoftInputFromWindow(rereset_passwd.getWindowToken(), 0);
+
+            resetPswValue = rereset_passwd.getText().toString();    
+            
+                if(checkEdit()){
+                	//重新设置密码-----------
+        			pd = ProgressDialog.show(UserResetpsw.this, "重置密码", "正在提交…");
+                	handler_timer.postDelayed(runnable, 6000);
+                	userResetpsw(userNameValue,userPasswordValue,resetPswValue);  
+                	
+                }
+            }          
+        });
+	 }
+ 
+	 Handler handler_timer=new Handler();
+	    Runnable runnable=new Runnable(){
+	    @Override
+	    public void run() {
+	    // TODO Auto-generated method stub
+	    	pd.dismiss();
+	    	Toast.makeText(UserResetpsw.this, "网络链接超时，请检查是否链接网络", Toast.LENGTH_SHORT).show();
+	   // handler.postDelayed(this, 4000);
+	    }
+	    }; 
+
+    private boolean checkEdit(){
+        if(reset_passwd.getText().toString().trim().length()<6){
+            Toast.makeText(UserResetpsw.this, "密码不能少于6个字符", Toast.LENGTH_SHORT).show();
+        }else if(!reset_passwd.getText().toString().trim().equals(rereset_passwd.getText().toString().trim())){
+            Toast.makeText(UserResetpsw.this, "两次密码输入不一致", Toast.LENGTH_SHORT).show();
+        }else{
+            return true;
+        }
+        return false;
+    }
+    
+    
+  //---首次登陆设置密码----------
+  	public void userResetpsw(String login_username, String login_password, String reset_passwd)
+  	{
+  		JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
+  			
+  			@Override
+  			public void onSuccess(JSONObject result) {
+  				try {
+  					//具体操作稍后添加，Log仅作测试用
+  					if(result.getBoolean("success") == true)
+  					{
+  						Log.v("resetpsw", result.getString("info"));
+  						pd.dismiss();
+  						handler_timer.removeCallbacks(runnable);
+  						Toast.makeText(UserResetpsw.this, "重设密码成功！", Toast.LENGTH_SHORT).show();
+  					    sp.edit().putString("PASS_WORD", resetPswValue).commit();  
+  					    sp.edit().putBoolean("isFirstRun", false).commit();  
+  						MyApplication app;
+  						app = (MyApplication)getApplication();
+  						app.setPassword(resetPswValue);
+  					    Intent intent=new Intent("com.ebupt.yuebox.ui.MAINACTIVITY");
+  					    startActivity(intent);
+  					}
+  					else
+  					{
+  						Log.v("resetpsw", result.getString("info"));
+  						pd.dismiss();
+  						handler_timer.removeCallbacks(runnable);
+  						Toast.makeText(UserResetpsw.this, result.getString("info"), Toast.LENGTH_SHORT).show();
+  					}   
+  				} catch (JSONException e) {
+  					// TODO Auto-generated catch block
+  					e.printStackTrace();
+  				}
+  		}
+  				};	
+  		NetEngine.userResetpsw(handler, login_username, login_password, reset_passwd);
+  	}	
+  	
+  	
+  	//---上报设备类型----------
+  	public void userDevice(String login_username, String login_password, String device_type, String push_id)
+  	{
+  		JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
+  			
+  			@Override
+  			public void onSuccess(JSONObject result) {
+  				try {
+  					//具体操作稍后添加，Log仅作测试用
+  					if(result.getBoolean("success") == true)
+  					{
+  						Log.v("device", result.getString("info"));
+  					}
+  					else
+  					{
+  						Log.v("device", result.getString("info"));
+  					}   
+  				} catch (JSONException e) {
+  					// TODO Auto-generated catch block
+  					e.printStackTrace();
+  				}
+  		}
+  				};	
+  		NetEngine.userDevice(handler, login_username, login_password, device_type, push_id);
+  	}
+
+     
+	//--点击两次back键退出程序---------------
+    public boolean onKeyDown(int keyCode,KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if ((System.currentTimeMillis() - mExitTime) > 2000) {
+                        Object mHelperUtils;
+                        Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                        mExitTime = System.currentTimeMillis();
+
+                } else {
+                	MyApplication.getInstance().exit();
+                }
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }	
+
+
+
+}
+
+
+
+
+
+
+

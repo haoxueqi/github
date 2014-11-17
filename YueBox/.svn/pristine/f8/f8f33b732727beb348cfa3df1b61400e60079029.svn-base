@@ -1,0 +1,116 @@
+package com.ebupt.yuebox.fragment;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Pair;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.adapter.SectionOrderAdapter;
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.ui.MyTaskDetailActivity;
+import com.ebupt.yuebox.view.SectionOrderListView;
+
+public class MyFragment extends Fragment {
+
+	private MyApplication app;
+	private SectionOrderListView list_my_order;
+	private SectionOrderAdapter myOrderAdapter;
+	private List<SetupTask> setupTasks;
+	private List<SetupTask> orderNoFinishList;
+	private List<SetupTask> orderFinishList;
+	private ArrayList<Pair<String, List<SetupTask>>> setupTaskLists;
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		View contextView = inflater.inflate(R.layout.fragment_my, container,
+				false);
+		return contextView;
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		initResource();
+		updateListData();
+	}
+
+	public void initResource() {
+		app = MyApplication.getInstance();
+		list_my_order = (SectionOrderListView) getActivity().findViewById(
+				R.id.list_my_order);
+		orderNoFinishList = new ArrayList<SetupTask>();
+		orderFinishList = new ArrayList<SetupTask>();
+		setupTaskLists = new ArrayList<Pair<String, List<SetupTask>>>();
+		list_my_order.setPinnedHeaderView(LayoutInflater.from(getActivity())
+				.inflate(R.layout.item_my_order_header, list_my_order, false));
+		list_my_order.setAdapter(myOrderAdapter = new SectionOrderAdapter(
+				getActivity(), setupTaskLists));
+		list_my_order.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> viewParent, View view,
+					int position, long id) {
+				// TODO Auto-generated method stub
+				Intent intent = new Intent(getActivity(),
+						MyTaskDetailActivity.class);
+				intent.putExtra("task_id", myOrderAdapter.getItem(position)
+						.getTask_id());
+				startActivity(intent);
+			}
+		});
+		IntentFilter intentFilter = new IntentFilter(
+				"com.ebupt.orderreceiver.yes");
+		getActivity().registerReceiver(myReceiver, intentFilter);
+	}
+
+	public void updateListData() {
+		orderNoFinishList.clear();
+		orderFinishList.clear();
+		setupTaskLists.clear();
+		setupTasks = app.getSetupTasks();
+		for (int i = 0; i < setupTasks.size(); i++) {
+			if (setupTasks.get(i).getTask_status().equals("11")) {
+				orderFinishList.add(setupTasks.get(i));
+			} else if (setupTasks.get(i).getTask_status().equals("01")) {
+				orderNoFinishList.add(setupTasks.get(i));
+			}
+		}
+		Pair<String, List<SetupTask>> list = new Pair<String, List<SetupTask>>(
+				"未完成工单", orderNoFinishList);
+		setupTaskLists.add(list);
+		list = new Pair<String, List<SetupTask>>("已完成工单", orderFinishList);
+		setupTaskLists.add(list);
+		myOrderAdapter.notifyDataSetChanged();
+	}
+
+	BroadcastReceiver myReceiver = new BroadcastReceiver() {
+		// 由service告诉OrderFragment需要更新数据了
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			if (intent.getAction().equals("com.ebupt.orderreceiver.yes")) {
+				updateListData();
+			}
+		}
+	};
+
+	@Override
+	public void onDestroy() {
+		getActivity().unregisterReceiver(myReceiver);
+		super.onDestroy();
+	}
+}

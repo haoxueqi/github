@@ -1,0 +1,193 @@
+package com.ebupt.yuebox.ui;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.application.MyApplication;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.Menu;
+import android.view.Window;
+import android.view.KeyEvent;
+
+import java.io.IOException;
+
+import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+/**
+ * 
+ * @ClassName: UserResetpsw
+ * @Description: 首次登录修改密码
+ * @author haoxueqi
+ * @date 2014-3-11
+ * 
+ */
+public class UserResetpsw extends Activity {
+
+	private EditText reset_passwd;
+	private EditText rereset_passwd;
+	private Button reset_submit;
+	private SharedPreferences sp;
+	private String passwordValue;
+	private long mExitTime;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		   setContentView(R.layout.user_resetpsw);   
+		   
+		   MyApplication.getInstance().addActivity(this);//每个activity都存入容器，以便退出时使用		
+  
+		sp = this.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+		
+		reset_passwd=(EditText)findViewById(R.id.reset_passwd);
+		rereset_passwd=(EditText)findViewById(R.id.rereset_passwd);
+		reset_submit=(Button)findViewById(R.id.reset_submit);
+		
+        reset_passwd.setOnFocusChangeListener(new OnFocusChangeListener()
+        {
+ 
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                // TODO Auto-generated method stub
+                if(!hasFocus){
+                    if(reset_passwd.getText().toString().trim().length()<6){
+                        Toast.makeText(UserResetpsw.this, "密码不能小于6个字符", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+             
+        });
+        rereset_passwd.setOnFocusChangeListener(new OnFocusChangeListener()
+        {
+ 
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                // TODO Auto-generated method stub
+                if(!hasFocus){
+                    if(!rereset_passwd.getText().toString().trim().equals(reset_passwd.getText().toString().trim())){
+                        Toast.makeText(UserResetpsw.this, "两次密码输入不一致", Toast.LENGTH_SHORT).show(); 
+                    }
+                }
+            }
+             
+        });
+        
+        reset_submit.setOnClickListener(new OnClickListener(){
+        	 
+            @Override
+            public void onClick(View v) {
+            passwordValue = rereset_passwd.getText().toString();    
+                if(checkEdit()){
+                  resetpsw();       
+                }
+            }          
+        });
+	 }
+   	
+    private void resetpsw(){	
+
+	CharSequence strResult="修改密码成功！";
+	Toast.makeText(UserResetpsw.this, strResult, Toast.LENGTH_SHORT).show();
+	//---记住密码--------
+    sp.edit().putString("PASS_WORD", passwordValue).commit();  
+ 
+    Intent intent=new Intent(this,MainActivity.class);
+    startActivity(intent);
+    
+	//                // TODO Auto-generated method stub
+//  String httpUrl="http://192.168.1.100:8080/web-test/register.jsp";
+//  HttpPost httpRequest=new HttpPost(httpUrl);
+//  List<NameValuePair> params=new ArrayList<NameValuePair>();
+//
+//  params.add(new BasicNameValuePair("password",reset_passwd.getText().toString().trim()));
+//  HttpEntity httpentity = null;
+//  try {
+//      httpentity = new UrlEncodedFormEntity(params,"utf8");
+//  } catch (UnsupportedEncodingException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//  }
+//  httpRequest.setEntity(httpentity);
+//  HttpClient httpclient=new DefaultHttpClient();
+//  HttpResponse httpResponse = null;
+//  try {
+//      httpResponse = httpclient.execute(httpRequest);
+//  } catch (ClientProtocolException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//  } catch (IOException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//  }
+//  if(httpResponse.getStatusLine().getStatusCode()==200)
+//  {
+//      String strResult = null;
+//      try {
+//          strResult = EntityUtils.toString(httpResponse.getEntity());
+//      } catch (ParseException e) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//      } catch (IOException e) {
+//          // TODO Auto-generated catch block
+//          e.printStackTrace();
+//      }
+//      Toast.makeText(UserResetpsw.this, strResult, Toast.LENGTH_SHORT).show();
+//  }
+//  else
+//  {
+//      Toast.makeText(UserResetpsw.this, "请求错误", Toast.LENGTH_SHORT).show();
+//  }
+    }
+
+    private boolean checkEdit(){
+        if(reset_passwd.getText().toString().trim().equals("")){
+            Toast.makeText(UserResetpsw.this, "密码不能为空", Toast.LENGTH_SHORT).show();
+        }else if(!reset_passwd.getText().toString().trim().equals(rereset_passwd.getText().toString().trim())){
+            Toast.makeText(UserResetpsw.this, "两次密码输入不一致", Toast.LENGTH_SHORT).show();
+        }else{
+            return true;
+        }
+        return false;
+    }
+     
+	//--点击两次back键退出程序---------------
+    public boolean onKeyDown(int keyCode,KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if ((System.currentTimeMillis() - mExitTime) > 2000) {
+                        Object mHelperUtils;
+                        Toast.makeText(this, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                        mExitTime = System.currentTimeMillis();
+
+                } else {
+                	MyApplication.getInstance().exit();
+                }
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }	
+
+
+
+}
+
+
+
+
+
+
+

@@ -1,0 +1,602 @@
+package com.ebupt.yuebox.ui;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
+import android.widget.Toast;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.location.LocationClientOption.LocationMode;
+import com.baidu.mapapi.map.LocationData;
+import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.MyLocationOverlay;
+import com.baidu.mapapi.map.RouteOverlay;
+import com.baidu.mapapi.map.TransitOverlay;
+import com.baidu.mapapi.search.MKAddrInfo;
+import com.baidu.mapapi.search.MKBusLineResult;
+import com.baidu.mapapi.search.MKDrivingRouteResult;
+import com.baidu.mapapi.search.MKPlanNode;
+import com.baidu.mapapi.search.MKPoiResult;
+import com.baidu.mapapi.search.MKRoute;
+import com.baidu.mapapi.search.MKSearch;
+import com.baidu.mapapi.search.MKSearchListener;
+import com.baidu.mapapi.search.MKShareUrlResult;
+import com.baidu.mapapi.search.MKSuggestionResult;
+import com.baidu.mapapi.search.MKTransitRoutePlan;
+import com.baidu.mapapi.search.MKTransitRouteResult;
+import com.baidu.mapapi.search.MKWalkingRouteResult;
+import com.baidu.platform.comapi.basestruct.GeoPoint;
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.application.MyApplication;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.model.SetupTask;
+
+public class ShowWayActivity extends Activity implements MKSearchListener {
+	private MKSearch mMKSearch = null;
+	private LocationClient mLocationClient = null;
+	private LocationData locData;
+	private MyLocationOverlay myLocationOverlay;
+	private RouteOverlay routeOverlay;
+	private TransitOverlay transitOverlay;
+	private ListView list_detail_route;
+	private ListView list_routes;
+	private RelativeLayout layout_search;
+	private RelativeLayout layout_search_result;
+	private RelativeLayout layout_route_title;
+	private RadioGroup radio_way;
+	private ImageView image_route_right;
+	private ImageView image_route_left;
+	private ImageView image_back;
+	private EditText edit_start;
+	private EditText edit_end;
+	private Button button_search;
+	private ArrayList<HashMap<String, String>> routeDetailArrayList;
+	private ArrayList<HashMap<String, String>> routesArrayList;
+	private SimpleAdapter spRouteDetail;
+	private SimpleAdapter spRoutes;
+	protected ProgressDialog searchDialog;
+	private searchAsyncTask searchAsyncTask;
+	private String which = "start"; // 默认先搜索起点的坐标
+	private MKAddrInfo start;
+	private MKAddrInfo end;
+	private MapView mMapView;
+	private String address; // 我的位置的详细地址
+	private String city;
+	private Animation animationToRight;
+	private Animation animationFromLeft;
+	private Animation animationFromRight;
+	private Animation animationToLeft;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.activity_show_way);
+		MyApplication app = MyApplication.getInstance();
+		initResource();
+		initMap();
+	}
+
+	public void initResource() {
+		mMapView = (MapView) findViewById(R.id.bmapsShowWay);
+		layout_search = (RelativeLayout) findViewById(R.id.layout_search);
+		layout_search_result = (RelativeLayout) findViewById(R.id.layout_route_detail);
+		layout_route_title = (RelativeLayout) findViewById(R.id.layout_route_title);
+		list_detail_route = (ListView) findViewById(R.id.list_detail_route);
+		list_routes = (ListView) findViewById(R.id.list_search_route);
+		radio_way = (RadioGroup) findViewById(R.id.radio_way);
+		image_route_right = (ImageView) findViewById(R.id.image_route_right);
+		image_route_left = (ImageView) findViewById(R.id.image_route_left);
+		image_back = (ImageView) this.findViewById(R.id.image_back);
+		edit_start = (EditText) findViewById(R.id.edit_start);
+		edit_end = (EditText) findViewById(R.id.edit_end);
+		edit_start.setText("我的位置");
+		String task_id = getIntent().getStringExtra("task_id");
+		SetupTask task = DbUtil
+				.getSetupTaskDao()
+				.queryBuilder()
+				.where(com.ebupt.yuebox.database.SetupTaskDao.Properties.Task_id
+						.eq(task_id)).list().get(0);
+		edit_end.setText(task.getTask_client_address());
+		button_search = (Button) findViewById(R.id.button_search);
+		initAnimation();
+		routeDetailArrayList = new ArrayList<HashMap<String, String>>();
+		spRouteDetail = new SimpleAdapter(this, routeDetailArrayList,
+				R.layout.item_route_detail, new String[] { "content",
+						"distance", "time" }, new int[] { R.id.tv_content,
+						R.id.tv_distance, R.id.tv_time });
+		routesArrayList = new ArrayList<HashMap<String, String>>();
+		spRoutes = new SimpleAdapter(this, routesArrayList,
+				R.layout.item_routes, new String[] { "content", "distance",
+						"time" }, new int[] { R.id.tv_routes, R.id.tv_distance,
+						R.id.tv_time });
+		list_detail_route.setAdapter(spRouteDetail);
+		list_routes.setAdapter(spRoutes);
+		image_route_right.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				mMapView.setVisibility(View.VISIBLE);
+				layout_search_result.setVisibility(View.GONE);
+				handler.postDelayed(zoomMap, 1000);
+			}
+		});
+		image_route_left.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				layout_search.startAnimation(animationFromLeft);
+				layout_search_result.startAnimation(animationToRight);
+				layout_search_result.setVisibility(View.GONE);
+				layout_search.setVisibility(View.VISIBLE);
+				routeDetailArrayList.clear();
+				if (mMapView.getOverlays().contains(routeOverlay)) {
+					mMapView.getOverlays().remove(routeOverlay);
+				}
+				if (mMapView.getOverlays().contains(transitOverlay)) {
+					mMapView.getOverlays().remove(transitOverlay);
+				}
+			}
+		});
+		image_back.setOnClickListener(new OnClickListener() {
+			// 退出导航界面
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				finish();
+			}
+		});
+		button_search.setOnClickListener(new OnClickListener() {
+			// 搜索不同的出行方式
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+				imm.hideSoftInputFromWindow(layout_search.getWindowToken(), 0);
+				routesArrayList.clear();
+				routeDetailArrayList.clear();
+				start = null;
+				end = null;
+				which = "start";
+				if (edit_start.getText().toString().equals("我的位置"))
+					mMKSearch.geocode(address, city); // 地址解析
+				else
+					mMKSearch.geocode(edit_start.getText().toString(), city); // 地址解析
+				searchDialog = new ProgressDialog(ShowWayActivity.this);
+				searchDialog.setMessage("正在搜索中，请稍后");
+				searchDialog.setCancelable(true);
+				searchDialog.show();
+				searchAsyncTask = new searchAsyncTask();
+				searchAsyncTask.execute(); // 查询起点与终点的坐标
+			}
+		});
+	}
+
+	public void initAnimation() {
+		animationFromLeft = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+				-1, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF,
+				0, Animation.RELATIVE_TO_SELF, 0);
+		animationFromLeft.setDuration(300);
+		animationToRight = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+				0, Animation.RELATIVE_TO_SELF, 1, Animation.RELATIVE_TO_SELF,
+				0, Animation.RELATIVE_TO_SELF, 0);
+		animationToRight.setDuration(300);
+		animationFromRight = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+				1, Animation.RELATIVE_TO_SELF, 0, Animation.RELATIVE_TO_SELF,
+				0, Animation.RELATIVE_TO_SELF, 0);
+		animationFromRight.setDuration(300);
+		animationToLeft = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+				Animation.RELATIVE_TO_SELF, -1, Animation.RELATIVE_TO_SELF, 0,
+				Animation.RELATIVE_TO_SELF, 0);
+		animationToLeft.setDuration(300);
+	}
+
+	public void initMap() {
+
+		mMKSearch = new MKSearch();
+		mMKSearch.init(MyApplication.getInstance().mBMapManager, this);
+		// 得到mMapView的控制权,可以用它控制和驱动平移和缩放
+		GeoPoint point = new GeoPoint((int) (39.915 * 1E6),
+				(int) (116.404 * 1E6));
+		// 用给定的经纬度构造一个GeoPoint，单位是微度 (度 * 1E6)
+		mMapView.getController().setCenter(point);// 设置地图中心点
+		mMapView.getController().setZoom(12);// 设置地图zoom级别
+		mLocationClient = new LocationClient(getApplicationContext()); // 声明LocationClient类
+		mLocationClient.registerLocationListener(myListener); // 注册监听函数
+		LocationClientOption option = new LocationClientOption();
+		option.setLocationMode(LocationMode.Hight_Accuracy);// 设置定位模式
+		option.setCoorType("bd09ll");// 返回的定位结果是百度经纬度，默认值gcj02
+		option.setScanSpan(5000);// 设置发起定位请求的间隔时间为5000ms
+		option.setIsNeedAddress(true);// 返回的定位结果包含地址信息
+		option.setNeedDeviceDirect(true);// 返回的定位结果包含手机机头的方向
+		mLocationClient.setLocOption(option);
+		locData = new LocationData();
+		mLocationClient.start();
+		if (mLocationClient != null && mLocationClient.isStarted())
+			mLocationClient.requestLocation();
+		else
+			Log.d("Location", "locClient is null or not started");
+		myLocationOverlay = new MyLocationOverlay(mMapView);
+		mMapView.getOverlays().add(myLocationOverlay);
+	}
+
+	class searchAsyncTask extends AsyncTask<Integer, Integer, String> {
+
+		@Override
+		protected String doInBackground(Integer... params) {
+			// TODO Auto-generated method stub
+			while (start == null || end == null) {
+			}
+			// 查询到起点和终点的坐标
+			return "yes";
+		}
+
+		@Override
+		protected void onPostExecute(String s) {
+			if (s.equals("yes")) {
+				MKPlanNode pStart = new MKPlanNode();
+				MKPlanNode pEnd = new MKPlanNode();
+				pStart.pt = start.geoPt;
+				pEnd.pt = end.geoPt;
+				switch (radio_way.getCheckedRadioButtonId()) {
+				case R.id.button_bus:
+					mMKSearch.transitSearch(city, pStart, pEnd);
+					break;
+				case R.id.button_car:
+					if (routesArrayList.size() != 0) {
+						routesArrayList.clear();
+					}
+					mMKSearch.setDrivingPolicy(MKSearch.ECAR_TIME_FIRST);
+					mMKSearch.drivingSearch(city, pStart, city, pEnd);
+					break;
+				case R.id.button_walk:
+					if (routesArrayList.size() != 0) {
+						routesArrayList.clear();
+					}
+					mMKSearch.walkingSearch(city, pStart, city, pEnd);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+
+	@Override
+	public void onGetDrivingRouteResult(MKDrivingRouteResult result, int iError) {
+		// TODO Auto-generated method stub
+		if (result == null) {
+			Toast.makeText(this, "网络异常", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		routeOverlay = new RouteOverlay(this, mMapView); // 此处仅展示一个方案作为示例
+		MKRoute route = result.getPlan(0).getRoute(0); // 暂时只选择第一条路线
+		routeOverlay.setData(route);
+		HashMap<String, String> list1 = new HashMap<String, String>();
+		list1.put("content", edit_start.getText().toString() + " 到 "
+				+ edit_end.getText().toString());
+		list1.put("distance", "总距离：" + switchDistance(route.getDistance()));
+		list1.put("time", "预计时间：" + switchTime(route.getTime()));
+		routeDetailArrayList.add(list1);
+		// 将每一步用list呈现
+		for (int i = 0; i < route.getNumSteps(); i++) {
+			HashMap<String, String> list = new HashMap<String, String>();
+			list.put("content", route.getStep(i).getContent());
+			routeDetailArrayList.add(list);
+		}
+		// 用户已经取消搜索
+		if (searchDialog.isShowing() == false)
+			return;
+		spRouteDetail.notifyDataSetChanged();
+		searchDialog.dismiss();
+		mMapView.getOverlays().add(routeOverlay);
+		mMapView.refresh();
+		layout_search.startAnimation(animationToLeft);
+		layout_route_title.startAnimation(animationFromRight);
+		layout_search_result.startAnimation(animationFromRight);
+		layout_search.setVisibility(View.GONE);
+		layout_route_title.setVisibility(View.VISIBLE);
+		layout_search_result.setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void onGetTransitRouteResult(final MKTransitRouteResult result,
+			int iError) {
+		// TODO Auto-generated method stub
+		if (result == null) {
+			Toast.makeText(this, "网络异常", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		for (int i = 0; i < result.getNumPlan(); i++) {
+			MKTransitRoutePlan route = result.getPlan(i);
+			HashMap<String, String> list = new HashMap<String, String>();
+			list.put("content", "路线" + (i + 1) + "：" + route.getContent().replace("_", "—"));
+			list.put("distance", "距离" + switchDistance(route.getDistance()));
+			list.put("time", "预计时间：" + switchTime(route.getTime()));
+			routesArrayList.add(list);
+		}
+		// 用户已经取消搜索
+		if (searchDialog.isShowing() == false)
+			return;
+		spRoutes.notifyDataSetChanged();
+		searchDialog.dismiss();
+		list_routes.setOnItemClickListener(new OnItemClickListener() {
+			// 展示对应路线的详细情况
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				// TODO Auto-generated method stub
+				MKTransitRoutePlan route = result.getPlan(position);
+				transitOverlay = new TransitOverlay(ShowWayActivity.this,
+						mMapView);
+				transitOverlay.setData(route);
+				// 将每一步用list呈现
+				int numLines = route.getNumLines();
+				int numRoute = route.getNumRoute();
+				for (int i = 0; i < numLines; i++) {
+					HashMap<String, String> list1 = new HashMap<String, String>();
+					HashMap<String, String> list2 = new HashMap<String, String>();
+					list1.put("content", "步行" + route.getRoute(i).getDistance()
+							+ "米 至 " + route.getLine(i).getGetOnStop().name);
+					routeDetailArrayList.add(list1);
+					list2.put("content", "乘坐" + route.getLine(i).getTitle()
+							+ "，在" + route.getLine(i).getGetOnStop().name
+							+ "上车，经过" + route.getLine(i).getNumViaStops()
+							+ "站，到达" + route.getLine(i).getGetOffStop().name);
+					routeDetailArrayList.add(list2);
+				}
+				HashMap<String, String> list = new HashMap<String, String>();
+				list.put("content", "步行"
+						+ route.getRoute(numRoute - 1).getDistance()
+						+ "米 到达  终点");
+				routeDetailArrayList.add(list);
+				spRouteDetail.notifyDataSetChanged();
+				mMapView.getOverlays().add(transitOverlay);
+				mMapView.refresh();
+				layout_search.startAnimation(animationToLeft);
+				layout_route_title.startAnimation(animationFromRight);
+				layout_search_result.startAnimation(animationFromRight);
+				layout_search.setVisibility(View.GONE);
+				layout_route_title.setVisibility(View.VISIBLE);
+				layout_search_result.setVisibility(View.VISIBLE);
+			}
+		});
+	}
+
+	@Override
+	public void onGetWalkingRouteResult(MKWalkingRouteResult result, int iError) {
+		// TODO Auto-generated method stub
+		if (result == null) {
+			Toast.makeText(this, "网络异常", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		routeOverlay = new RouteOverlay(this, mMapView); // 此处仅展示一个方案作为示例
+		MKRoute route = result.getPlan(0).getRoute(0); // 暂时只选择第一条路线
+		routeOverlay.setData(route);
+		HashMap<String, String> list1 = new HashMap<String, String>();
+		list1.put("content", edit_start.getText().toString() + " 到 "
+				+ edit_end.getText().toString());
+		list1.put("distance", "总距离：" + switchDistance(route.getDistance()));
+		list1.put("time", "预计时间：" + switchTime(route.getTime()));
+		routeDetailArrayList.add(list1);
+		// 将每一步用list呈现
+		for (int i = 0; i < route.getNumSteps(); i++) {
+			HashMap<String, String> list = new HashMap<String, String>();
+			list.put("content", route.getStep(i).getContent());
+			routeDetailArrayList.add(list);
+		}
+		// 用户已经取消搜索
+		if (searchDialog.isShowing() == false)
+			return;
+		spRouteDetail.notifyDataSetChanged();
+		searchDialog.dismiss();
+		mMapView.getOverlays().add(routeOverlay);
+		mMapView.refresh();
+		layout_search.startAnimation(animationToLeft);
+		layout_route_title.startAnimation(animationFromRight);
+		layout_search_result.startAnimation(animationFromRight);
+		layout_search.setVisibility(View.GONE);
+		layout_route_title.setVisibility(View.VISIBLE);
+		layout_search_result.setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void onGetAddrResult(MKAddrInfo res, int error) {
+		// TODO Auto-generated method stub
+		if (error != 0) {
+			String str = String.format("错误号：%d", error);
+			Log.w("BaiduMap", str + "!!!");
+			searchDialog.dismiss();
+			return;
+		}
+		if (res.type == MKAddrInfo.MK_GEOCODE) {
+			// 地理编码：通过地址检索坐标点
+			if (which.equals("start")) {
+				start = res;
+				mMKSearch.geocode(edit_end.getText().toString(), city);
+				which = "end";
+				String strInfo = String.format("纬度：%f 经度：%f",
+						res.geoPt.getLatitudeE6() / 1e6,
+						res.geoPt.getLongitudeE6() / 1e6);
+				Log.i("start", strInfo);
+				return;
+			}
+			if (which.equals("end")) {
+				edit_end.setText(res.strAddr);
+				String strInfo = String.format("纬度：%f 经度：%f",
+						res.geoPt.getLatitudeE6() / 1e6,
+						res.geoPt.getLongitudeE6() / 1e6);
+				Log.i("end", strInfo);
+				end = res;
+			}
+		}
+	}
+
+	@Override
+	public void onGetPoiDetailSearchResult(int arg0, int arg1) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onGetPoiResult(MKPoiResult arg0, int arg1, int arg2) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onGetShareUrlResult(MKShareUrlResult arg0, int arg1, int arg2) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onGetSuggestionResult(MKSuggestionResult arg0, int arg1) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onGetBusDetailResult(MKBusLineResult result, int iError) {
+		// TODO Auto-generated method stub
+	}
+
+	public String switchTime(int number) {
+		String time;
+		if (number / 60 == 0)
+			time = "1分钟";
+		else if (number / 60 < 60)
+			time = number / 60 + "分钟";
+		else
+			time = number / 3600 + "小时" + number / 60 + "分钟";
+		return time;
+	}
+
+	public String switchDistance(int number) {
+		String distance;
+		if (number > 2000)
+			distance = (float) (number / 100) / 10 + "km";
+		else
+			distance = number + "m";
+		return distance;
+	}
+
+	BDLocationListener myListener = new BDLocationListener() {
+		// 定位相关
+		@Override
+		public void onReceiveLocation(BDLocation location) {
+			// TODO Auto-generated method stub
+			if (location == null || location.getLatitude() == 4.9E-324
+					|| location.getLongitude() == 4.9E-324) {
+				return;
+			}
+			locData.latitude = location.getLatitude();
+			locData.longitude = location.getLongitude();
+			locData.direction = location.getDirection();
+			address = location.getAddrStr();
+			city = location.getCity();
+			myLocationOverlay.setData(locData);
+			mMapView.refresh();
+		}
+
+		@Override
+		public void onReceivePoi(BDLocation arg0) {
+			// TODO Auto-generated method stub
+
+		}
+	};
+
+	Handler handler = new Handler();
+	Runnable zoomMap = new Runnable() {
+		// 延时缩放，否则地图未显示出来，缩放造成程序死掉
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			while (mMapView.isShown() == false) {
+
+			}
+			if (mMapView.getOverlays().contains(transitOverlay)) {
+				mMapView.getController().zoomToSpan(
+						transitOverlay.getLatSpanE6(),
+						transitOverlay.getLonSpanE6());
+				mMapView.getController().animateTo(transitOverlay.getCenter());
+			} else if (mMapView.getOverlays().contains(routeOverlay)) {
+				mMapView.getController().zoomToSpan(
+						routeOverlay.getLatSpanE6(),
+						routeOverlay.getLonSpanE6());
+				mMapView.getController().animateTo(routeOverlay.getCenter());
+			}
+		}
+	};
+
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			if (mMapView.isShown()) {
+				mMapView.setVisibility(View.GONE);
+				layout_route_title.setVisibility(View.VISIBLE);
+				layout_search_result.setVisibility(View.VISIBLE);
+				return true;
+			} else if (layout_search_result.isShown()) {
+				if(mMapView.getOverlays().contains(routeOverlay))
+					mMapView.getOverlays().remove(routeOverlay);
+				if(mMapView.getOverlays().contains(transitOverlay))
+					mMapView.getOverlays().remove(transitOverlay);
+				layout_search.startAnimation(animationFromLeft);
+				layout_search_result.startAnimation(animationToRight);
+				layout_route_title.startAnimation(animationToRight);
+				layout_search_result.setVisibility(View.GONE);
+				layout_route_title.setVisibility(View.GONE);
+				layout_search.setVisibility(View.VISIBLE);
+				return true;
+			} else if (layout_search.isShown())
+				finish();
+		}
+		return false;
+	}
+
+	public void onDestroy() {
+		mMapView.destroy();
+		mLocationClient.stop();
+		super.onDestroy();
+	}
+
+	@Override
+	public void onPause() {
+		mMapView.onPause();
+		super.onPause();
+	}
+
+	@Override
+	public void onResume() {
+		mMapView.onResume();
+		super.onResume();
+	}
+}

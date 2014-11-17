@@ -1,0 +1,138 @@
+package com.ebupt.yuebox.ui;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
+
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.adapter.TaskPicListAdapter;
+import com.ebupt.yuebox.util.Const;
+
+public class TaskPicListActivity extends Activity implements OnClickListener,
+		OnItemClickListener {
+
+	private ListView mPicList;
+	private TaskPicListAdapter mAdapter;
+
+	private String mTaskId;
+	private List<HashMap<String, String>> mDataList;
+	private File[] mFileList;
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mDataList = getDataList();
+		mAdapter.setDataList(mDataList);
+		mAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_task_pic_list);
+		mTaskId = getIntent().getStringExtra("task_id");
+
+		initView();
+		mDataList = getDataList();
+		mAdapter = new TaskPicListAdapter(this);
+		mAdapter.setDataList(mDataList);
+		mAdapter.setClientName(getIntent().getStringExtra("client_name"));
+		mPicList.setOnItemClickListener(this);
+		mPicList.setAdapter(mAdapter);
+		if (getIntent().getBooleanExtra("isOnlyShow", false)) {// 提交完成之后浏览
+			findViewById(R.id.footer).setVisibility(View.GONE);
+		}
+		findViewById(R.id.footer_take_pic).setOnClickListener(this);
+		findViewById(R.id.image_back).setOnClickListener(this);
+
+	}
+
+	private void initView() {
+		mPicList = (ListView) findViewById(R.id.task_pic_list);
+
+	}
+
+	List<HashMap<String, String>> getDataList() {
+		mFileList = getFileList();
+		List<HashMap<String, String>> dataList = new ArrayList<HashMap<String, String>>();
+
+		if (mFileList != null) {
+			for (int i = 0; i < mFileList.length; i++) {
+				HashMap<String, String> item = new HashMap<String, String>();
+				item.put("pic_path", mFileList[i].getAbsolutePath());
+				item.put("take_time", mFileList[i].lastModified() + "");
+				dataList.add(item);
+			}
+		}
+		return dataList;
+	}
+
+	private File[] getFileList() {
+		File destDir = new File(Const.PIC_DIR);
+		File[] files = null;
+		if (destDir.isDirectory()) {
+			files = destDir.listFiles(new MyFileFilter());
+		}
+		return files;
+	}
+
+	class MyFileFilter implements FileFilter {
+
+		/**
+		 * 匹配文件名称
+		 */
+		public boolean accept(File file) {
+			try {
+				Pattern pattern = Pattern.compile(mTaskId + "_image\\d+.*");
+				Matcher match = pattern.matcher(file.getName());
+				return match.matches();
+			} catch (Exception e) {
+				return true;
+			}
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.footer_take_pic:
+			Intent intent = new Intent(TaskPicListActivity.this,
+					ScanActivity.class);
+			intent.putExtra(Const.SCAN_KEY, Const.SCAN_VALUE_BOOKCOVER);
+			intent.putExtra("task_id", mTaskId);
+			startActivityForResult(intent, 0);
+			break;
+
+		case R.id.image_back:
+			finish();
+			break;
+		default:
+			break;
+		}
+
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int position,
+			long arg3) {
+		Intent gallery_intent = new Intent(TaskPicListActivity.this,
+				ViewPicActivity.class);
+		String pic_path = mAdapter.getItem(position).get("pic_path");
+		gallery_intent.putExtra("pic_path", pic_path);
+		startActivity(gallery_intent);
+	}
+
+}

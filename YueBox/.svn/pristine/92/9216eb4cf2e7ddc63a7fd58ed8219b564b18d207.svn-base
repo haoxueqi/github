@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" 
+    android:background="#F0F0F0">
+    
+  		<TextView
+	        android:id="@+id/tv_pop_name"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="黄焖鸡米饭"
+	        android:textSize="20sp" />
+    
+    	<TextView
+	        android:id="@+id/tv_pop_address"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:layout_below="@+id/tv_pop_name"
+	        android:text="西土城"
+	        android:textSize="20sp" />
+
+	    <View
+	        android:id="@+id/view1"
+	        android:layout_width="2dp"
+	        android:layout_height="80dp"
+	        android:layout_alignBottom="@+id/tv_pop_mobile"
+	        android:layout_marginRight="18dp"
+	        android:layout_marginTop="5dp"
+	        android:layout_marginBottom="5dp"
+	        android:layout_toLeftOf="@+id/button_pop_detail"
+	        android:background="#BDBDBD" />
+
+	    <TextView
+	        android:id="@+id/tv_pop_mobile"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:layout_below="@+id/tv_pop_address"
+	        android:text="联系电话：1234567890"
+	        android:textSize="17sp" />
+
+	    <Button
+	        android:id="@+id/button_pop_detail"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentRight="true"
+	        android:layout_centerVertical="true"
+	        android:layout_marginRight="14dp"
+	        android:background="#F0F0F0"
+	        android:textSize="25sp"
+	        android:text="@string/detail" />
+
+</RelativeLayout>

@@ -1,0 +1,96 @@
+/*
+ * Copyright (C) 2011 Markus Junginger, greenrobot (http://greenrobot.de)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.greenrobot.daogenerator.gentest;
+
+import de.greenrobot.daogenerator.DaoGenerator;
+import de.greenrobot.daogenerator.Entity;
+import de.greenrobot.daogenerator.Schema;
+
+/**
+ * Generates entities and DAOs for the example project DaoExample.
+ * 
+ * Run it as a Java application (not Android).
+ * 
+ * @author Markus
+ */
+public class ExampleDaoGenerator {
+
+	public static void main(String[] args) throws Exception {
+		Schema schema = new Schema(3, "com.ebupt.yuebox.model");
+
+		addSetupTask(schema);
+		addUserInformation(schema);
+		addWodAppPicture(schema);
+
+		new DaoGenerator().generateAll(schema, "../src");
+	}
+
+	private static void addSetupTask(Schema schema) {
+		Entity task = schema.addEntity("SetupTask");
+		task.addStringProperty("task_id").notNull().primaryKey();
+		task.addLongProperty("task_publish_time");
+		task.addLongProperty("task_start_time");
+		task.addLongProperty("task_end_time");
+		task.addStringProperty("task_client_name");
+		task.addStringProperty("task_client_address");
+		task.addIntProperty("task_client_lng");
+		task.addIntProperty("task_client_lat");
+		task.addStringProperty("task_client_tel");
+		task.addStringProperty("task_client_mobile");
+		task.addIntProperty("task_box_num");
+		task.addStringProperty("task_get_userid");
+		task.addStringProperty("task_status");
+		task.addIntProperty("task_grab_credits");
+		task.addIntProperty("task_finish_credits");
+		task.addDoubleProperty("task_finish_comment_factor");
+		task.addStringProperty("task_finish_comment");
+		task.addStringProperty("task_boxids");
+		task.addLongProperty("task_edittime");
+		task.addStringProperty("task_client_person");
+		task.addStringProperty("task_outstorage_id");
+	}
+
+	private static void addUserInformation(Schema schema) {
+		Entity customer = schema.addEntity("AppSetupUser");
+		customer.addStringProperty("user_id").notNull().primaryKey();
+		customer.addStringProperty("user_name");
+		customer.addStringProperty("user_password");
+		customer.addStringProperty("user_tel");
+		customer.addStringProperty("user_email");
+		customer.addStringProperty("user_name_spell");
+		customer.addStringProperty("user_job");
+		customer.addStringProperty("user_grade");
+		customer.addStringProperty("user_department");
+		customer.addIntProperty("user_total_credits");
+		customer.addIntProperty("user_year_credits");
+		customer.addIntProperty("user_month_credits");
+		customer.addIntProperty("user_week_credits");
+		customer.addStringProperty("user_status");
+		customer.addLongProperty("user_edittime");
+		customer.addStringProperty("user_token_id");
+		customer.addIntProperty("user_os_type");
+	}
+
+	private static void addWodAppPicture(Schema schema) {
+		Entity picture = schema.addEntity("WodAppPicture");
+		picture.addStringProperty("picture_id").notNull().primaryKey();
+		picture.addLongProperty("picture_uptime");
+		picture.addStringProperty("picture_name");
+		picture.addStringProperty("picture_url");
+		picture.addLongProperty("picture_task_id");
+		picture.addLongProperty("picture_user_id");
+	}
+}

@@ -1,0 +1,205 @@
+package com.ebupt.yuebox.ui;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.ebupt.yuebox.EditInfoActivity;
+import com.ebupt.yuebox.R;
+import com.ebupt.yuebox.database.DbUtil;
+import com.ebupt.yuebox.database.SetupTaskDao;
+import com.ebupt.yuebox.model.SetupTask;
+import com.ebupt.yuebox.net.NetEngine;
+import com.ebupt.yuebox.util.Const;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+/**
+ * 
+ * @author threeStar
+ * 
+ */
+
+public class MyTaskDetailActivity extends Activity implements OnClickListener {
+
+	TextView mTakePicBtn;
+	TextView mScanBarcodeBtn;
+	TextView mTaskName;
+	TextView mTaskAddress;
+	TextView mTaskMobile;
+	TextView mSubmitBtn;
+	TextView mTaskStatus;
+	View mBtnLayout;
+
+	String mTaskId;
+	SetupTask mTask;
+
+	SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd",
+			Locale.CHINA);
+	SetupTaskDao mTaskDao = DbUtil.getSetupTaskDao();
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_my_task_detail);
+		mTaskId = getIntent().getStringExtra("task_id");
+		mTask = mTaskDao.load(mTaskId);
+		initView();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode == Const.GET_BOX_ID_OK) {
+			String box_id = data.getStringExtra("box_id");
+			if (mTask.getTask_boxids() == null
+					|| mTask.getTask_boxids().equals("")) {
+				mTask.setTask_boxids(box_id);
+			} else {
+				box_id = mTask.getTask_boxids() + "," + box_id;
+				mTask.setTask_boxids(box_id);
+			}
+			mTaskDao.update(mTask);
+		} else if (resultCode == Const.EDIT_TASK_OK) {
+			mTask = mTaskDao.load(mTaskId);
+			updateView();
+		}
+	};
+
+	private void updateView() {
+		if (mTask.getTask_client_name() != null)
+			mTaskName.setText(mTask.getTask_client_name());
+		mTaskAddress.setText(mTask.getTask_client_address());
+		mTaskMobile.setText(mTask.getTask_client_mobile());
+
+		String taskPublishTimeStr = mDateFormat.format(new Date(mTask
+				.getTask_publish_time()));
+		String taskEndTimeStr = mDateFormat.format(new Date(mTask
+				.getTask_end_time()));
+		String taskAmountStr = mTask.getTask_box_num() + "";
+
+		String taskPublishTimeFormat = getResources().getString(
+				R.string.task_time);
+		String taskEndTimeFormat = getResources().getString(
+				R.string.task_end_time);
+		String taskAmountFormat = getResources()
+				.getString(R.string.task_amount);
+		((TextView) findViewById(R.id.task_publish_time)).setText(String
+				.format(taskPublishTimeFormat, taskPublishTimeStr));
+		((TextView) findViewById(R.id.task_end_time)).setText(String.format(
+				taskEndTimeFormat, taskEndTimeStr));
+		((TextView) findViewById(R.id.task_amount)).setText(String.format(
+				taskAmountFormat, taskAmountStr));
+
+	}
+
+	private void initView() {
+		mTakePicBtn = (TextView) findViewById(R.id.take_pic_btn);
+		mScanBarcodeBtn = (TextView) findViewById(R.id.scan_barcode_btn);
+		mTaskName = (TextView) findViewById(R.id.tv_detail_name);
+		mTaskAddress = (TextView) findViewById(R.id.tv_detail_address);
+		mTaskMobile = (TextView) findViewById(R.id.tv_detail_mobile);
+		mSubmitBtn = (TextView) findViewById(R.id.submit_btn);
+		mBtnLayout = findViewById(R.id.layout_btn);
+		mTaskStatus = (TextView) findViewById(R.id.task_status);
+
+		if (mTask.getTask_status().equals(Const.TASK_DONE)) {
+			mBtnLayout.setVisibility(View.INVISIBLE);
+			mTaskStatus.setText("已完成");
+		} else {
+			mBtnLayout.setVisibility(View.VISIBLE);
+			mTaskStatus.setText("未完成");
+		}
+		updateView();
+		mTakePicBtn.setOnClickListener(this);
+		mScanBarcodeBtn.setOnClickListener(this);
+		mSubmitBtn.setOnClickListener(this);
+		findViewById(R.id.edit_info).setOnClickListener(this);
+		findViewById(R.id.layout_address).setOnClickListener(this);
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.take_pic_btn:
+			goToTakePic();
+			break;
+		case R.id.scan_barcode_btn:
+			goToScanBarcode();
+			break;
+		case R.id.submit_btn:
+			submitTask();
+			break;
+		case R.id.edit_info:
+			Intent intent = new Intent(MyTaskDetailActivity.this,
+					EditInfoActivity.class);
+			intent.putExtra("task_id", mTaskId);
+			startActivityForResult(intent, 0);
+			break;
+		case R.id.layout_address:
+			Intent intentToAddress = new Intent(MyTaskDetailActivity.this,
+					ShowWayActivity.class);
+			intentToAddress.putExtra("task_id", mTaskId);
+			startActivity(intentToAddress);
+			break;
+		}
+	}
+
+	private void submitTask() {
+		NetEngine.modifyOrderStatus(mHandler, mTaskId, mTask.getTask_boxids(),
+				Const.TASK_DONE, mTask.getTask_client_name(),
+				mTask.getTask_client_name(), mTask.getTask_client_tel(),
+				mTask.getTask_client_mobile());
+	}
+
+	private void goToScanBarcode() {
+		Intent intent = new Intent(MyTaskDetailActivity.this,
+				ScanActivity.class);
+		intent.putExtra(Const.SCAN_KEY, Const.SCAN_VALUE_BARCODE);
+		startActivityForResult(intent, 0);
+	}
+
+	private void goToTakePic() {
+		Intent intent = new Intent(MyTaskDetailActivity.this,
+				ScanActivity.class);
+		intent.putExtra(Const.SCAN_KEY, Const.SCAN_VALUE_BOOKCOVER);
+		intent.putExtra("task_id", mTaskId);
+		startActivity(intent);
+	}
+
+	JsonHttpResponseHandler mHandler = new JsonHttpResponseHandler() {
+		@Override
+		public void onSuccess(JSONObject response) {
+			Log.d("TAG", "RESPOND");
+			try {
+				if (response != null) {
+					Log.d("TAG", response.toString());
+					if (response.getBoolean("success") == true) {
+						// 修改成功
+						mTask.setTask_status(Const.TASK_DONE);
+						mTaskDao.update(mTask);
+						mBtnLayout.setVisibility(View.INVISIBLE);
+						Toast.makeText(MyTaskDetailActivity.this, "提交成功",
+								Toast.LENGTH_SHORT).show();
+					} else {
+						Toast.makeText(MyTaskDetailActivity.this, "提交失败",
+								Toast.LENGTH_SHORT).show();
+					}
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+				Log.d("TAG", "Parse Json Failed");
+			}
+		};
+	};
+}
